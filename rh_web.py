@@ -185,6 +185,7 @@ def get_positions_by_date(date):
             'error': f'Failed to fetch positions for date {date}'
         }), 500
 
+
 if __name__ == '__main__':
     # Trigger authentication on startup like main branch
     print("Starting Robinhood Options Dashboard...")

@@ -103,11 +103,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Event listener for refresh button
     document.getElementById('refreshData').addEventListener('click', async () => {
-        await fetchOptionsData();
-        // Also refresh calendar if it's active
-        const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
-        if (activeTab === 'calendar') {
-            await refreshCalendar();
+        const refreshButton = document.getElementById('refreshData');
+        const originalText = refreshButton.textContent;
+        
+        try {
+            refreshButton.textContent = 'Updating from Robinhood...';
+            refreshButton.disabled = true;
+            
+            // First update data from Robinhood
+            const response = await fetch('/api/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ force_refresh: true })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update data');
+            }
+            
+            // Then fetch the updated data for display
+            await fetchOptionsData();
+            
+            // Also refresh calendar if it's active
+            const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+            if (activeTab === 'calendar') {
+                await refreshCalendar();
+            }
+            
+        } catch (error) {
+            console.error('Error during refresh:', error);
+            alert(`Failed to refresh data: ${error.message}`);
+        } finally {
+            refreshButton.textContent = originalText;
+            refreshButton.disabled = false;
         }
     });
 });

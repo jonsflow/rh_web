@@ -169,6 +169,11 @@ class OptionsDatabase:
         for order in orders:
             option_ids, symbol, created_at, position_effect, expiration_date, strike_price, price, quantity, premium, strategy, direction, option_type = order
             
+            # Skip spreads entirely for now
+            if strategy and '_spread' in strategy.lower():
+                continue
+                
+            # Single options only
             option_key = f"{symbol}_{option_ids}_{expiration_date}_{strike_price}"
             
             if option_key not in positions_dict:
@@ -247,6 +252,7 @@ class OptionsDatabase:
         # Calculate net credit and determine status
         for position in positions_dict.values():
             if position['open_premium'] is not None and position['close_premium'] is not None:
+                # Position has both open and close orders - it was manually closed
                 # Calculate P&L based on debit/credit strategy
                 if position['open_price'] is not None and position['close_price'] is not None and position['quantity'] is not None and position['quantity'] > 0:
                     price_diff = position['close_price'] - position['open_price']
@@ -266,14 +272,25 @@ class OptionsDatabase:
                     position['net_credit'] = position['open_premium'] + position['close_premium']
                 position['status'] = 'closed'
             elif position['open_premium'] is not None:
-                # Check if expired
+                # Position only has open orders - check if expired
+                is_expired = False
                 if position['expiration_date']:
                     try:
                         exp_date = datetime.datetime.strptime(position['expiration_date'], '%Y-%m-%d')
                         if exp_date < datetime.datetime.now():
-                            position['status'] = 'expired'
+                            is_expired = True
                     except ValueError:
                         pass
+                
+                if is_expired:
+                    # Position expired without being manually closed
+                    position['status'] = 'expired'
+                    # Single options: simple expired = worthless logic
+                    position['net_credit'] = self._calculate_expired_pnl(position)
+                    position['close_date'] = position['expiration_date']
+                    position['close_price'] = 0.0  # Expired options are worthless
+                    position['close_premium'] = 0.0
+                # else: remains 'open' (default status set on line 185)
             
             # Insert position
             cursor.execute('''
@@ -294,19 +311,45 @@ class OptionsDatabase:
         conn.commit()
         conn.close()
     
+    def _calculate_expired_pnl(self, position: Dict) -> float:
+        """Calculate P&L for expired positions based on strategy direction"""
+        if not position['open_premium']:
+            return 0.0
+            
+        if position['direction'] == 'debit':
+            # Debit positions: you paid premium, expired worthless = loss
+            return -abs(position['open_premium'])
+        elif position['direction'] == 'credit':
+            # Credit positions: you received premium, expired worthless = profit  
+            return abs(position['open_premium'])
+        else:
+            # Fallback for unknown direction
+            return 0.0
+    
     def get_positions_by_status(self, status: str) -> List[Dict]:
         """Get positions filtered by status"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
-                   quantity, open_price, close_price, open_premium, close_premium, net_credit,
-                   strategy, direction, option_type, status
-            FROM positions
-            WHERE status = ?
-            ORDER BY open_date DESC
-        ''', (status,))
+        # For open positions, filter out those with no open_premium (orphaned closes)
+        if status == 'open':
+            cursor.execute('''
+                SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                       quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                       strategy, direction, option_type, status
+                FROM positions
+                WHERE status = ? AND open_premium IS NOT NULL
+                ORDER BY open_date DESC
+            ''', (status,))
+        else:
+            cursor.execute('''
+                SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                       quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                       strategy, direction, option_type, status
+                FROM positions
+                WHERE status = ?
+                ORDER BY open_date DESC
+            ''', (status,))
         
         columns = ['option_key', 'symbol', 'open_date', 'close_date', 'expiration_date', 
                   'strike_price', 'quantity', 'open_price', 'close_price', 'open_premium', 

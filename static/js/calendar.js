@@ -33,8 +33,9 @@ class CalendarManager {
     }
 
     async onDatesSet(dateInfo) {
-        // Load data when the calendar view changes (month navigation)
+        // Load data when the calendar view changes (month navigation)  
         await this.loadPnlData(dateInfo.startStr, dateInfo.endStr);
+        // Note: updateMonthlyPnlSummary will be called in loadCalendarEvents
     }
 
     async loadPnlData(startDate, endDate) {
@@ -49,6 +50,47 @@ class CalendarManager {
             }
         } catch (error) {
             console.error('Error fetching daily P&L data:', error);
+        }
+    }
+
+    updateMonthlyPnlSummary(dateInfo) {
+        // Get the actual month/year being displayed (center of the view)
+        const viewStart = new Date(dateInfo.start);
+        const viewEnd = new Date(dateInfo.end);
+        const middleDate = new Date((viewStart.getTime() + viewEnd.getTime()) / 2);
+        
+        const targetMonth = middleDate.getMonth();
+        const targetYear = middleDate.getFullYear();
+        
+        // Calculate total P&L only for days in the target month
+        let monthlyTotal = 0;
+        let tradeDays = 0;
+        
+        for (const [date, dayData] of Object.entries(this.dailyPnlData)) {
+            const dayDate = new Date(date);
+            // Only include days that are in the target month/year
+            if (dayDate.getMonth() === targetMonth && dayDate.getFullYear() === targetYear) {
+                monthlyTotal += dayData.pnl || 0;
+                tradeDays++;
+            }
+        }
+        
+        const monthYear = middleDate.toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+        });
+        
+        // Update the calendar title to include monthly P&L
+        const titleElement = document.querySelector('.fc-toolbar-title');
+        if (titleElement) {
+            const pnlClass = monthlyTotal >= 0 ? 'profit' : 'loss';
+            const pnlSign = monthlyTotal >= 0 ? '+' : '';
+            titleElement.innerHTML = `
+                ${monthYear}
+                <div class="monthly-pnl ${pnlClass}" style="font-size: 0.8em; font-weight: normal; margin-top: 4px;">
+                    Monthly P&L: ${pnlSign}$${monthlyTotal.toFixed(2)} (${tradeDays} days)
+                </div>
+            `;
         }
     }
 
@@ -78,6 +120,9 @@ class CalendarManager {
                     textColor: 'white'
                 });
             }
+            
+            // Update the monthly summary after loading events
+            this.updateMonthlyPnlSummary(info);
             
             successCallback(events);
         } catch (error) {
