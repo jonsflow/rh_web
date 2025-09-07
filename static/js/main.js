@@ -17,12 +17,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tab switching
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
+            const previousActiveTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+            const newTabId = button.getAttribute('data-tab');
+            
+            // Clean up previous tab
+            if (previousActiveTab === 'calendar') {
+                destroyCalendar();
+            }
+            
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
             
             button.classList.add('active');
-            const tabId = button.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            document.getElementById(newTabId).classList.add('active');
+            
+            // Initialize new tab
+            if (newTabId === 'calendar') {
+                initCalendar();
+            }
         });
     });
     
@@ -90,5 +102,43 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchOptionsData();
     
     // Event listener for refresh button
-    document.getElementById('refreshData').addEventListener('click', fetchOptionsData);
+    document.getElementById('refreshData').addEventListener('click', async () => {
+        const refreshButton = document.getElementById('refreshData');
+        const originalText = refreshButton.textContent;
+        
+        try {
+            refreshButton.textContent = 'Updating from Robinhood...';
+            refreshButton.disabled = true;
+            
+            // First update data from Robinhood
+            const response = await fetch('/api/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ force_refresh: true })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update data');
+            }
+            
+            // Then fetch the updated data for display
+            await fetchOptionsData();
+            
+            // Also refresh calendar if it's active
+            const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+            if (activeTab === 'calendar') {
+                await refreshCalendar();
+            }
+            
+        } catch (error) {
+            console.error('Error during refresh:', error);
+            alert(`Failed to refresh data: ${error.message}`);
+        } finally {
+            refreshButton.textContent = originalText;
+            refreshButton.disabled = false;
+        }
+    });
 });

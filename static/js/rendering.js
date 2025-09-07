@@ -7,10 +7,18 @@ function renderSummary() {
         return total + (position.open_premium || 0);
     }, 0).toFixed(2);
     
-    // Calculate P&L from closed positions only
-    const closedPL = optionsData.closed_positions.reduce((total, position) => {
-        return total + (position.net_credit || 0);
-    }, 0).toFixed(2);
+    // Calculate P&L breakdown
+    const closedPL = optionsData.closed_positions
+        .filter(position => position.net_credit !== null && position.net_credit !== undefined)
+        .reduce((total, position) => total + position.net_credit, 0);
+    
+    const expiredPL = optionsData.expired_positions
+        .filter(position => position.net_credit !== null && position.net_credit !== undefined)
+        .reduce((total, position) => total + position.net_credit, 0);
+    
+    const totalPL = (closedPL + expiredPL).toFixed(2);
+    const closedPLFormatted = closedPL.toFixed(2);
+    const expiredPLFormatted = expiredPL.toFixed(2);
     
     // Count positions
     const openCount = optionsData.open_positions.length;
@@ -19,22 +27,34 @@ function renderSummary() {
     
     summary.innerHTML = `
         <div class="summary-card">
+            <h3>Total P&L</h3>
+            <div class="value ${Number(totalPL) >= 0 ? 'profit' : 'loss'}">
+                ${Number(totalPL) >= 0 ? '+' : ''}$${totalPL}
+            </div>
+        </div>
+        <div class="summary-card">
+            <h3>Closed P&L</h3>
+            <div class="value ${Number(closedPLFormatted) >= 0 ? 'profit' : 'loss'}">
+                ${Number(closedPLFormatted) >= 0 ? '+' : ''}$${closedPLFormatted}
+            </div>
+        </div>
+        <div class="summary-card">
+            <h3>Expired P&L</h3>
+            <div class="value ${Number(expiredPLFormatted) >= 0 ? 'profit' : 'loss'}">
+                ${Number(expiredPLFormatted) >= 0 ? '+' : ''}$${expiredPLFormatted}
+            </div>
+        </div>
+        <div class="summary-card">
+            <h3>Total Trades</h3>
+            <div class="value">${openCount + closedCount + expiredCount}</div>
+        </div>
+        <div class="summary-card">
             <h3>Open Positions</h3>
             <div class="value">${openCount}</div>
         </div>
         <div class="summary-card">
             <h3>Open Value</h3>
             <div class="value">$${Math.abs(openValue)}</div>
-        </div>
-        <div class="summary-card">
-            <h3>Closed P&L</h3>
-            <div class="value ${Number(closedPL) >= 0 ? 'profit' : 'loss'}">
-                ${Number(closedPL) >= 0 ? '+' : ''}$${closedPL}
-            </div>
-        </div>
-        <div class="summary-card">
-            <h3>Total Trades</h3>
-            <div class="value">${openCount + closedCount + expiredCount}</div>
         </div>
     `;
 }
