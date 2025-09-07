@@ -17,12 +17,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tab switching
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
+            const previousActiveTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+            const newTabId = button.getAttribute('data-tab');
+            
+            // Clean up previous tab
+            if (previousActiveTab === 'calendar') {
+                destroyCalendar();
+            }
+            
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
             
             button.classList.add('active');
-            const tabId = button.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            document.getElementById(newTabId).classList.add('active');
+            
+            // Initialize new tab
+            if (newTabId === 'calendar') {
+                initCalendar();
+            }
         });
     });
     
@@ -90,5 +102,12 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchOptionsData();
     
     // Event listener for refresh button
-    document.getElementById('refreshData').addEventListener('click', fetchOptionsData);
+    document.getElementById('refreshData').addEventListener('click', async () => {
+        await fetchOptionsData();
+        // Also refresh calendar if it's active
+        const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+        if (activeTab === 'calendar') {
+            await refreshCalendar();
+        }
+    });
 });

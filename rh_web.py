@@ -143,6 +143,48 @@ def get_options():
             "error": "An internal error occurred while fetching options data"
         }), 500
 
+@app.route('/api/daily-pnl')
+def get_daily_pnl():
+    """API endpoint for calendar daily PnL data"""
+    try:
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        daily_summary = data_fetcher.db.get_daily_pnl_summary(start_date, end_date)
+        
+        return jsonify({
+            'success': True,
+            'daily_pnl': daily_summary
+        })
+        
+    except Exception as e:
+        print(f"Daily PnL API Error: {str(e)}")
+        print(traceback.format_exc())
+        
+        return jsonify({
+            'error': 'Failed to fetch daily PnL data'
+        }), 500
+
+@app.route('/api/positions/date/<date>')
+def get_positions_by_date(date):
+    """Get detailed positions for a specific date"""
+    try:
+        positions = data_fetcher.db.get_positions_by_date(date)
+        
+        return jsonify({
+            'success': True,
+            'date': date,
+            'positions': positions
+        })
+        
+    except Exception as e:
+        print(f"Positions by Date API Error: {str(e)}")
+        print(traceback.format_exc())
+        
+        return jsonify({
+            'error': f'Failed to fetch positions for date {date}'
+        }), 500
+
 if __name__ == '__main__':
     # Trigger authentication on startup like main branch
     print("Starting Robinhood Options Dashboard...")
