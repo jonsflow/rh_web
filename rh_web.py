@@ -52,6 +52,11 @@ def index():
     """Render the main page"""
     return render_template('index.html')
 
+@app.route('/debug')
+def debug():
+    """Debug page for testing frontend"""
+    return send_from_directory('.', 'debug_frontend.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle login for Robinhood"""

@@ -1,11 +1,11 @@
-// Render summary statistics
+// Render summary statistics using new SummaryCard component
 function renderSummary() {
     const summary = document.getElementById('summary');
     
-    // Calculate total open value
+    // Calculate total open value  
     const openValue = optionsData.open_positions.reduce((total, position) => {
         return total + (position.open_premium || 0);
-    }, 0).toFixed(2);
+    }, 0);
     
     // Calculate P&L breakdown
     const closedPL = optionsData.closed_positions
@@ -16,94 +16,126 @@ function renderSummary() {
         .filter(position => position.net_credit !== null && position.net_credit !== undefined)
         .reduce((total, position) => total + position.net_credit, 0);
     
-    const totalPL = (closedPL + expiredPL).toFixed(2);
-    const closedPLFormatted = closedPL.toFixed(2);
-    const expiredPLFormatted = expiredPL.toFixed(2);
+    const totalPL = closedPL + expiredPL;
     
     // Count positions
     const openCount = optionsData.open_positions.length;
     const closedCount = optionsData.closed_positions.length;
     const expiredCount = optionsData.expired_positions.length;
     
-    summary.innerHTML = `
-        <div class="summary-card">
-            <h3>Total P&L</h3>
-            <div class="value ${Number(totalPL) >= 0 ? 'profit' : 'loss'}">
-                ${Number(totalPL) >= 0 ? '+' : ''}$${totalPL}
+    // Create SummaryPanel using new modular component (if available)
+    if (typeof window.SummaryPanel !== 'undefined') {
+        const summaryPanel = new window.SummaryPanel(summary);
+        summaryPanel.updateStats({
+            totalPL: totalPL,
+            closedPL: closedPL,
+            expiredPL: expiredPL,
+            totalTrades: openCount + closedCount + expiredCount,
+            openCount: openCount,
+            openValue: openValue
+        });
+    } else {
+        // Fallback to original HTML rendering if component not available
+        const totalPLFormatted = totalPL.toFixed(2);
+        const closedPLFormatted = closedPL.toFixed(2);
+        const expiredPLFormatted = expiredPL.toFixed(2);
+        const openValueFormatted = openValue.toFixed(2);
+        
+        summary.innerHTML = `
+            <div class="summary-card">
+                <h3>Total P&L</h3>
+                <div class="value ${Number(totalPLFormatted) >= 0 ? 'profit' : 'loss'}">
+                    ${Number(totalPLFormatted) >= 0 ? '+' : ''}$${totalPLFormatted}
+                </div>
             </div>
-        </div>
-        <div class="summary-card">
-            <h3>Closed P&L</h3>
-            <div class="value ${Number(closedPLFormatted) >= 0 ? 'profit' : 'loss'}">
-                ${Number(closedPLFormatted) >= 0 ? '+' : ''}$${closedPLFormatted}
+            <div class="summary-card">
+                <h3>Closed P&L</h3>
+                <div class="value ${Number(closedPLFormatted) >= 0 ? 'profit' : 'loss'}">
+                    ${Number(closedPLFormatted) >= 0 ? '+' : ''}$${closedPLFormatted}
+                </div>
             </div>
-        </div>
-        <div class="summary-card">
-            <h3>Expired P&L</h3>
-            <div class="value ${Number(expiredPLFormatted) >= 0 ? 'profit' : 'loss'}">
-                ${Number(expiredPLFormatted) >= 0 ? '+' : ''}$${expiredPLFormatted}
+            <div class="summary-card">
+                <h3>Expired P&L</h3>
+                <div class="value ${Number(expiredPLFormatted) >= 0 ? 'profit' : 'loss'}">
+                    ${Number(expiredPLFormatted) >= 0 ? '+' : ''}$${expiredPLFormatted}
+                </div>
             </div>
-        </div>
-        <div class="summary-card">
-            <h3>Total Trades</h3>
-            <div class="value">${openCount + closedCount + expiredCount}</div>
-        </div>
-        <div class="summary-card">
-            <h3>Open Positions</h3>
-            <div class="value">${openCount}</div>
-        </div>
-        <div class="summary-card">
-            <h3>Open Value</h3>
-            <div class="value">$${Math.abs(openValue)}</div>
-        </div>
-    `;
+            <div class="summary-card">
+                <h3>Total Trades</h3>
+                <div class="value">${openCount + closedCount + expiredCount}</div>
+            </div>
+            <div class="summary-card">
+                <h3>Open Positions</h3>
+                <div class="value">${openCount}</div>
+            </div>
+            <div class="summary-card">
+                <h3>Open Value</h3>
+                <div class="value">$${Math.abs(openValueFormatted)}</div>
+            </div>
+        `;
+    }
 }
 
 // Render open positions table with data attributes for sorting
 function renderOpenPositions() {
-    const tbody = document.querySelector('#openPositionsTable tbody');
-    tbody.innerHTML = '';
-    
-    if (optionsData.open_positions.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="10" class="empty-message">No open positions found</td>
-            </tr>
-        `;
-        return;
+    // Try to use new PositionTable component
+    if (typeof window.PositionTable !== 'undefined') {
+        // Check if we already created a table instance
+        if (!window.openPositionTable) {
+            window.openPositionTable = new window.PositionTable({
+                container: document.querySelector('#openPositionsTable'),
+                type: 'open'
+            });
+        }
+        
+        // Update table data
+        window.openPositionTable.setData(optionsData.open_positions);
+    } else {
+        // Fallback to original rendering
+        const tbody = document.querySelector('#openPositionsTable tbody');
+        tbody.innerHTML = '';
+        
+        if (optionsData.open_positions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="empty-message">No open positions found</td>
+                </tr>
+            `;
+            return;
+        }
+        
+        optionsData.open_positions.forEach(position => {
+            const row = document.createElement('tr');
+            const optionType = position.option_type || '';
+            
+            row.innerHTML = `
+                <td>${position.symbol}</td>
+                <td>${position.strategy || ''}</td>
+                <td>${position.open_date || ''}</td>
+                <td>${position.expiration_date || ''}</td>
+                <td>${position.strike_price || ''}</td>
+                <td>${optionType}</td>
+                <td class="${position.direction}">${position.direction || ''}</td>
+                <td>${position.quantity || ''}</td>
+                <td>${position.open_price ? '$' + position.open_price.toFixed(2) : ''}</td>
+                <td>${position.open_premium ? '$' + Math.abs(position.open_premium).toFixed(2) : ''}</td>
+            `;
+            
+            // Add data attributes for sorting
+            row.dataset.symbol = position.symbol || '';
+            row.dataset.strategy = position.strategy || '';
+            row.dataset.openDate = position.open_date || '';
+            row.dataset.expirationDate = position.expiration_date || '';
+            row.dataset.strikePrice = parseFloat(position.strike_price || 0);
+            row.dataset.optionType = optionType;
+            row.dataset.direction = position.direction || '';
+            row.dataset.quantity = parseFloat(position.quantity || 0);
+            row.dataset.openPrice = parseFloat(position.open_price || 0);
+            row.dataset.openPremium = parseFloat(position.open_premium || 0);
+            
+            tbody.appendChild(row);
+        });
     }
-    
-    optionsData.open_positions.forEach(position => {
-        const row = document.createElement('tr');
-        const optionType = position.option_type || '';
-        
-        row.innerHTML = `
-            <td>${position.symbol}</td>
-            <td>${position.strategy || ''}</td>
-            <td>${position.open_date || ''}</td>
-            <td>${position.expiration_date || ''}</td>
-            <td>${position.strike_price || ''}</td>
-            <td>${optionType}</td>
-            <td class="${position.direction}">${position.direction || ''}</td>
-            <td>${position.quantity || ''}</td>
-            <td>${position.open_price ? '$' + position.open_price.toFixed(2) : ''}</td>
-            <td>${position.open_premium ? '$' + Math.abs(position.open_premium).toFixed(2) : ''}</td>
-        `;
-        
-        // Add data attributes for sorting
-        row.dataset.symbol = position.symbol || '';
-        row.dataset.strategy = position.strategy || '';
-        row.dataset.openDate = position.open_date || '';
-        row.dataset.expirationDate = position.expiration_date || '';
-        row.dataset.strikePrice = parseFloat(position.strike_price || 0);
-        row.dataset.optionType = optionType;
-        row.dataset.direction = position.direction || '';
-        row.dataset.quantity = parseFloat(position.quantity || 0);
-        row.dataset.openPrice = parseFloat(position.open_price || 0);
-        row.dataset.openPremium = parseFloat(position.open_premium || 0);
-        
-        tbody.appendChild(row);
-    });
 }
 
 // Render closed positions table with data attributes for sorting

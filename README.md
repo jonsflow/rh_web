@@ -2,6 +2,14 @@
 
 A real-time web-based risk management system for monitoring and managing long option positions across multiple Robinhood accounts with advanced order customization, trailing stop functionality, and automated execution.
 
+## 🏗️ Architecture
+
+This repository contains two main applications:
+- **Portfolio Dashboard** (`rh_web.py`): Modern modular dashboard for analyzing Robinhood options trading history
+- **Risk Manager** (`risk_manager_web.py`): Real-time multi-account risk management system
+
+📊 **[View Class Diagram](class-diagram.html)** - Technical class diagram showing Python components, methods, and relationships.
+
 ## Features
 
 ### 🏦 **Multi-Account Support**
