@@ -1,79 +1,23 @@
+"""
+Data Repository Service
+
+Pure data access layer that handles database operations without business logic.
+This replaces direct database access from other parts of the application.
+"""
+
 import sqlite3
 import json
-import datetime
-import pandas as pd
 from typing import Dict, List, Optional, Tuple
-import os
-from services.pnl_calculator import PnLCalculator
-from services.position_classifier import PositionClassifier
+from models.position import Position
+from models.option_order import OptionOrder
+from models.pnl_summary import DailyPnLSummary
 
-class OptionsDatabase:
+
+class DataRepository:
+    """Handles all database operations for options data"""
+    
     def __init__(self, db_path: str = "options.db"):
         self.db_path = db_path
-        self.init_database()
-    
-    def init_database(self):
-        """Initialize the SQLite database with required tables"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Create option_orders table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS option_orders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                robinhood_id TEXT UNIQUE,
-                symbol TEXT,
-                created_at TEXT,
-                position_effect TEXT,
-                expiration_date TEXT,
-                strike_price TEXT,
-                price REAL,
-                quantity INTEGER,
-                premium REAL,
-                strategy TEXT,
-                direction TEXT,
-                option_type TEXT,
-                option_ids TEXT,
-                raw_data TEXT,
-                fetched_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Create positions table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS positions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                option_key TEXT UNIQUE,
-                symbol TEXT,
-                open_date TEXT,
-                close_date TEXT,
-                expiration_date TEXT,
-                strike_price TEXT,
-                quantity INTEGER,
-                open_price REAL,
-                close_price REAL,
-                open_premium REAL,
-                close_premium REAL,
-                net_credit REAL,
-                strategy TEXT,
-                direction TEXT,
-                option_type TEXT,
-                status TEXT,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Create index for faster queries
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_robinhood_id ON option_orders(robinhood_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_symbol ON option_orders(symbol)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_created_at ON option_orders(created_at)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_option_key ON positions(option_key)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_status ON positions(status)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_close_date ON positions(close_date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_status_close_date ON positions(status, close_date)')
-        
-        conn.commit()
-        conn.close()
     
     def get_last_order_date(self) -> Optional[str]:
         """Get the date of the most recent order in the database"""
@@ -147,42 +91,65 @@ class OptionsDatabase:
         
         return inserted_count
     
-    def rebuild_positions(self):
-        """Rebuild the positions table from option_orders using the service layer"""
-        from services.option_service import OptionService
+    def get_all_raw_orders(self) -> List[Tuple]:
+        """Get all orders from database as raw tuples for position building"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
         
-        # Use the service to handle all the complex position building logic
-        option_service = OptionService(self.db_path)
-        positions_processed = option_service.rebuild_all_positions()
+        cursor.execute('''
+            SELECT option_ids, symbol, created_at, position_effect, expiration_date,
+                   strike_price, price, quantity, premium, strategy, direction, option_type
+            FROM option_orders
+            ORDER BY created_at
+        ''')
         
-        print(f"Rebuilt {positions_processed} positions using service layer")
+        orders = cursor.fetchall()
+        conn.close()
+        
+        return orders
     
+    def save_positions(self, positions: List[Position]) -> None:
+        """Save processed positions to database"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Clear existing positions
+        cursor.execute('DELETE FROM positions')
+        
+        # Insert new positions
+        for position in positions:
+            cursor.execute('''
+                INSERT OR REPLACE INTO positions 
+                (option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                 quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                 strategy, direction, option_type, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                position.option_key, position.symbol, position.open_date, 
+                position.close_date, position.expiration_date, position.strike_price,
+                position.quantity, position.open_price, position.close_price,
+                position.open_premium, position.close_premium, position.net_credit,
+                position.strategy, position.direction, position.option_type,
+                position.status
+            ))
+        
+        conn.commit()
+        conn.close()
     
-    def get_positions_by_status(self, status: str) -> List[Dict]:
+    def get_positions_by_status(self, status: str) -> List[Position]:
         """Get positions filtered by status"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # For open positions, filter out orphaned closing orders (positions with no open_premium)
-        # This uses the same logic as PositionClassifier.has_orphaned_close_orders()
-        if status == 'open':
-            cursor.execute('''
-                SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
-                       quantity, open_price, close_price, open_premium, close_premium, net_credit,
-                       strategy, direction, option_type, status
-                FROM positions
-                WHERE status = ? AND open_premium IS NOT NULL
-                ORDER BY open_date DESC
-            ''', (status,))
-        else:
-            cursor.execute('''
-                SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
-                       quantity, open_price, close_price, open_premium, close_premium, net_credit,
-                       strategy, direction, option_type, status
-                FROM positions
-                WHERE status = ?
-                ORDER BY open_date DESC
-            ''', (status,))
+        # Filter out orphaned closing orders for all statuses
+        cursor.execute('''
+            SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                   quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                   strategy, direction, option_type, status
+            FROM positions
+            WHERE status = ? AND open_premium IS NOT NULL
+            ORDER BY open_date DESC
+        ''', (status,))
         
         columns = ['option_key', 'symbol', 'open_date', 'close_date', 'expiration_date', 
                   'strike_price', 'quantity', 'open_price', 'close_price', 'open_premium', 
@@ -190,13 +157,14 @@ class OptionsDatabase:
         
         results = []
         for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
+            position_data = dict(zip(columns, row))
+            results.append(Position.from_dict(position_data))
         
         conn.close()
         return results
     
-    def get_all_orders(self) -> List[Dict]:
-        """Get all orders from the database"""
+    def get_all_orders_for_display(self) -> List[Dict]:
+        """Get all orders formatted for display in the UI"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -225,35 +193,18 @@ class OptionsDatabase:
         conn.close()
         return results
     
-    def get_daily_pnl_summary(self, start_date: str = None, end_date: str = None) -> Dict:
-        """Get daily PnL summary with optional date filtering for calendar view"""
+    def get_daily_pnl_data(self, start_date: str = None, end_date: str = None) -> List[DailyPnLSummary]:
+        """Get daily P&L summary data for calendar view"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # First, let's debug what we have in the database
-        debug_query = '''
-            SELECT status, COUNT(*), 
-                   COUNT(CASE WHEN close_date IS NOT NULL THEN 1 END) as with_close_date,
-                   COUNT(CASE WHEN net_credit IS NOT NULL THEN 1 END) as with_net_credit
-            FROM positions 
-            GROUP BY status
-        '''
-        cursor.execute(debug_query)
-        debug_results = cursor.fetchall()
-        print("Database debug info:")
-        for row in debug_results:
-            print(f"  Status: {row[0]}, Count: {row[1]}, With close_date: {row[2]}, With net_credit: {row[3]}")
-        
-        # Main query with better filtering
         query = '''
             SELECT DATE(close_date) as day, 
                    SUM(CASE WHEN net_credit IS NOT NULL THEN net_credit ELSE 0 END) as daily_pnl,
                    COUNT(*) as position_count,
-                   GROUP_CONCAT(symbol || ' (' || COALESCE(ROUND(net_credit, 2), 0) || ')') as position_details,
-                   MIN(close_date) as first_close_time,
-                   MAX(close_date) as last_close_time
+                   GROUP_CONCAT(symbol || ' (' || COALESCE(ROUND(net_credit, 2), 0) || ')') as position_details
             FROM positions 
-            WHERE status = 'closed' AND close_date IS NOT NULL
+            WHERE status IN ('closed', 'expired') AND close_date IS NOT NULL
         '''
         params = []
         
@@ -266,25 +217,23 @@ class OptionsDatabase:
             
         query += ' GROUP BY DATE(close_date) ORDER BY close_date DESC'
         
-        print(f"Executing query with params: {params}")
         cursor.execute(query, params)
         results = cursor.fetchall()
         
-        daily_data = {}
+        daily_summaries = []
         for row in results:
-            day, pnl, count, details, first_time, last_time = row
-            print(f"Date: {day}, PnL: {pnl}, Count: {count}, First: {first_time}, Last: {last_time}")
-            daily_data[day] = {
-                'pnl': round(float(pnl), 2) if pnl else 0,
-                'count': count,
-                'details': details if details else ''
-            }
+            day, pnl, count, details = row
+            daily_summaries.append(DailyPnLSummary(
+                date=day,
+                pnl=float(pnl) if pnl else 0.0,
+                position_count=count,
+                details=details if details else ''
+            ))
         
-        print(f"Returning {len(daily_data)} days of data")
         conn.close()
-        return daily_data
+        return daily_summaries
     
-    def get_positions_by_date(self, target_date: str) -> List[Dict]:
+    def get_positions_by_date(self, target_date: str) -> List[Position]:
         """Get all closed positions for a specific date"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -294,7 +243,7 @@ class OptionsDatabase:
                    quantity, open_price, close_price, open_premium, close_premium, net_credit,
                    strategy, direction, option_type, status
             FROM positions
-            WHERE status = 'closed' AND DATE(close_date) = ?
+            WHERE status IN ('closed', 'expired') AND DATE(close_date) = ?
             ORDER BY close_date DESC
         ''', (target_date,))
         
@@ -304,7 +253,8 @@ class OptionsDatabase:
         
         results = []
         for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
+            position_data = dict(zip(columns, row))
+            results.append(Position.from_dict(position_data))
         
         conn.close()
         return results

@@ -150,7 +150,7 @@ def get_daily_pnl():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         
-        daily_summary = data_fetcher.db.get_daily_pnl_summary(start_date, end_date)
+        daily_summary = data_fetcher.option_service.get_daily_pnl_summary(start_date, end_date)
         
         return jsonify({
             'success': True,
@@ -169,12 +169,15 @@ def get_daily_pnl():
 def get_positions_by_date(date):
     """Get detailed positions for a specific date"""
     try:
-        positions = data_fetcher.db.get_positions_by_date(date)
+        positions = data_fetcher.option_service.get_positions_by_date(date)
+        
+        # Convert Position objects to dictionaries for API response
+        positions_data = [pos.to_dict() for pos in positions]
         
         return jsonify({
             'success': True,
             'date': date,
-            'positions': positions
+            'positions': positions_data
         })
         
     except Exception as e:
