@@ -1,7 +1,3 @@
-import robin_stocks.robinhood as r
-import pandas as pd
-import datetime
-import getpass
 import json
 import traceback
 from flask import Flask, render_template, jsonify, request, url_for, send_from_directory, redirect
@@ -52,10 +48,6 @@ def index():
     """Render the main page"""
     return render_template('index.html')
 
-@app.route('/debug')
-def debug():
-    """Debug page for testing frontend"""
-    return send_from_directory('.', 'debug_frontend.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -120,24 +112,7 @@ def get_options():
                 'details': result['traceback']
             }), 500
         
-        # Ensure the result is JSON serializable
-        try:
-            # Try to serialize to JSON as a validation step
-            json_test = json.dumps(result)
-            return jsonify(result)
-        except TypeError as e:
-            print(f"JSON serialization error: {str(e)}")
-            
-            # Attempt to fix non-serializable values
-            if 'all_orders' in result:
-                for i, order in enumerate(result['all_orders']):
-                    for key, value in list(order.items()):
-                        if isinstance(value, (tuple, set)):
-                            result['all_orders'][i][key] = list(value)
-                        elif pd.isna(value):
-                            result['all_orders'][i][key] = None
-            
-            return jsonify(result)
+        return jsonify(result)
             
     except Exception as e:
         # Print the full error traceback to the console
