@@ -1,7 +1,3 @@
-import robin_stocks.robinhood as r
-import pandas as pd
-import datetime
-import getpass
 import json
 import traceback
 from flask import Flask, render_template, jsonify, request, url_for, send_from_directory, redirect
@@ -51,6 +47,7 @@ def fetch_and_process_option_orders():
 def index():
     """Render the main page"""
     return render_template('index.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -115,24 +112,7 @@ def get_options():
                 'details': result['traceback']
             }), 500
         
-        # Ensure the result is JSON serializable
-        try:
-            # Try to serialize to JSON as a validation step
-            json_test = json.dumps(result)
-            return jsonify(result)
-        except TypeError as e:
-            print(f"JSON serialization error: {str(e)}")
-            
-            # Attempt to fix non-serializable values
-            if 'all_orders' in result:
-                for i, order in enumerate(result['all_orders']):
-                    for key, value in list(order.items()):
-                        if isinstance(value, (tuple, set)):
-                            result['all_orders'][i][key] = list(value)
-                        elif pd.isna(value):
-                            result['all_orders'][i][key] = None
-            
-            return jsonify(result)
+        return jsonify(result)
             
     except Exception as e:
         # Print the full error traceback to the console
@@ -150,7 +130,7 @@ def get_daily_pnl():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         
-        daily_summary = data_fetcher.db.get_daily_pnl_summary(start_date, end_date)
+        daily_summary = data_fetcher.option_service.get_daily_pnl_summary(start_date, end_date)
         
         return jsonify({
             'success': True,
@@ -169,12 +149,15 @@ def get_daily_pnl():
 def get_positions_by_date(date):
     """Get detailed positions for a specific date"""
     try:
-        positions = data_fetcher.db.get_positions_by_date(date)
+        positions = data_fetcher.option_service.get_positions_by_date(date)
+        
+        # Convert Position objects to dictionaries for API response
+        positions_data = [pos.to_dict() for pos in positions]
         
         return jsonify({
             'success': True,
             'date': date,
-            'positions': positions
+            'positions': positions_data
         })
         
     except Exception as e:

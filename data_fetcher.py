@@ -5,10 +5,12 @@ import json
 import os
 from typing import Dict, List, Optional
 from database import OptionsDatabase
+from services.option_service import OptionService
 
 class SmartDataFetcher:
     def __init__(self, db_path: str = "options.db", config_path: str = "config.json"):
         self.db = OptionsDatabase(db_path)
+        self.option_service = OptionService(db_path)
         self.config = self.load_config(config_path)
     
     def load_config(self, config_path: str) -> Dict:
@@ -151,26 +153,16 @@ class SmartDataFetcher:
             }
     
     def get_processed_data(self) -> Dict:
-        """Get processed data from the database"""
+        """Get processed data using the service layer"""
         try:
-            # Get positions by status
-            open_positions = self.db.get_positions_by_status('open')
-            closed_positions = self.db.get_positions_by_status('closed')
-            expired_positions = self.db.get_positions_by_status('expired')
-            all_orders = self.db.get_all_orders()
-            
-            return {
-                'open_positions': open_positions,
-                'closed_positions': closed_positions,
-                'expired_positions': expired_positions,
-                'all_orders': all_orders
-            }
+            # Use the option service to get processed data
+            return self.option_service.get_processed_data_for_api()
             
         except Exception as e:
             print(f"Error getting processed data: {str(e)}")
             return {
                 'error': True,
-                'message': 'Failed to retrieve processed data from database'
+                'message': 'Failed to retrieve processed data from service layer'
             }
     
     def update_data(self, username: str = None, password: str = None, force_full_refresh: bool = False) -> Dict:

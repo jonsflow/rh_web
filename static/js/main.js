@@ -38,14 +38,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Fetch data from API
+    // Fetch data from API using new ApiService (with fallback)
     function fetchOptionsData() {
         loadingIndicator.style.display = 'block';
         dashboardContent.style.display = 'none';
         errorMessage.style.display = 'none';
         
-        fetch('/api/options')
-            .then(response => {
+        // Use new ApiService if available, otherwise fallback to direct fetch
+        const apiCall = (typeof window.ApiService !== 'undefined') 
+            ? window.ApiService.fetchOptionsData()
+            : fetch('/api/options').then(response => {
                 if (response.status === 401) {
                     window.location.href = '/login';
                     throw new Error('Login required');
@@ -56,7 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 return response.json();
-            })
+            });
+        
+        apiCall
             .then(data => {
                 if (data && data.error) {
                     throw new Error(data.error);

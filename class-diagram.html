@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RH Portfolio Dashboard - Class Diagram</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #333;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .diagram {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .layer {
+            border: 2px solid #333;
+            background: #fff;
+        }
+
+        .layer-header {
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .layer-content {
+            padding: 15px;
+        }
+
+        .class-box {
+            border: 1px solid #666;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+
+        .class-header {
+            background: #e9ecef;
+            padding: 6px 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #666;
+        }
+
+        .class-content {
+            padding: 8px 10px;
+        }
+
+        .methods, .attributes {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .methods li, .attributes li {
+            padding: 2px 0;
+            font-size: 12px;
+        }
+
+        .method {
+            color: #0066cc;
+        }
+
+        .attribute {
+            color: #cc6600;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #333;
+            margin: 8px 0 4px 0;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .relationships {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+        }
+
+        .relationships h2 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .relationship {
+            margin: 8px 0;
+            padding: 5px;
+            background: white;
+            border-left: 4px solid #007bff;
+        }
+
+        .flow-diagram {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .flow-diagram h2 {
+            margin: 0 0 15px 0;
+            color: #856404;
+        }
+
+        .flow-step {
+            margin: 5px 0;
+            padding: 8px;
+            background: white;
+            border-left: 3px solid #ffc107;
+        }
+
+        .api-endpoints {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+        }
+
+        .endpoint {
+            font-family: monospace;
+            background: #333;
+            color: #0f0;
+            padding: 4px 8px;
+            margin: 4px 0;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1200px) {
+            .diagram {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RH Portfolio Dashboard - Python Class Architecture</h1>
+            <p>Service Layer + Repository Pattern + Data Models</p>
+        </div>
+
+        <div class="diagram">
+            <!-- Flask Layer -->
+            <div class="layer">
+                <div class="layer-header">Flask Application Layer</div>
+                <div class="layer-content">
+                    <div class="class-box">
+                        <div class="class-header">rh_web.py</div>
+                        <div class="class-content">
+                            <div class="section-title">Routes</div>
+                            <ul class="methods">
+                                <li class="method">@app.route('/api/options')</li>
+                                <li class="method">@app.route('/api/daily-pnl')</li>
+                                <li class="method">@app.route('/api/update')</li>
+                                <li class="method">@app.route('/api/positions/date/&lt;date&gt;')</li>
+                            </ul>
+                            <div class="section-title">Functions</div>
+                            <ul class="methods">
+                                <li class="method">fetch_and_process_option_orders()</li>
+                                <li class="method">get_options()</li>
+                                <li class="method">get_daily_pnl()</li>
+                                <li class="method">update_data()</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="class-box">
+                        <div class="class-header">SmartDataFetcher</div>
+                        <div class="class-content">
+                            <div class="section-title">Attributes</div>
+                            <ul class="attributes">
+                                <li class="attribute">db: OptionsDatabase</li>
+                                <li class="attribute">option_service: OptionService</li>
+                                <li class="attribute">config: Dict</li>
+                            </ul>
+                            <div class="section-title">Methods</div>
+                            <ul class="methods">
+                                <li class="method">login_robinhood()</li>
+                                <li class="method">fetch_option_orders()</li>
+                                <li class="method">get_processed_data()</li>
+                                <li class="method">update_data()</li>
+                                <li class="method">get_start_date()</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Layer -->
+            <div class="layer">
+                <div class="layer-header">Service Layer</div>
+                <div class="layer-content">
+                    <div class="class-box">
+                        <div class="class-header">OptionService</div>
+                        <div class="class-content">
+                            <div class="section-title">Attributes</div>
+                            <ul class="attributes">
+                                <li class="attribute">repository: DataRepository</li>
+                                <li class="attribute">pnl_calculator: PnLCalculator</li>
+                                <li class="attribute">position_classifier: PositionClassifier</li>
+                            </ul>
+                            <div class="section-title">Methods</div>
+                            <ul class="methods">
+                                <li class="method">process_raw_orders_to_positions()</li>
+                                <li class="method">rebuild_all_positions()</li>
+                                <li class="method">get_positions_by_status()</li>
+                                <li class="method">get_all_positions()</li>
+                                <li class="method">get_processed_data_for_api()</li>
+                                <li class="method">get_daily_pnl_summary()</li>
+                                <li class="method">_aggregate_position_data()</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="class-box">
+                        <div class="class-header">PnLCalculator</div>
+                        <div class="class-content">
+                            <div class="section-title">Static Methods</div>
+                            <ul class="methods">
+                                <li class="method">calculate_closed_position_pnl()</li>
+                                <li class="method">calculate_expired_position_pnl()</li>
+                                <li class="method">is_spread_strategy()</li>
+                                <li class="method">_calculate_premium_pnl()</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="class-box">
+                        <div class="class-header">PositionClassifier</div>
+                        <div class="class-content">
+                            <div class="section-title">Static Methods</div>
+                            <ul class="methods">
+                                <li class="method">classify_position()</li>
+                                <li class="method">has_orphaned_close_orders()</li>
+                                <li class="method">should_skip_spread()</li>
+                                <li class="method">_is_expired()</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Layer -->
+            <div class="layer">
+                <div class="layer-header">Data Layer</div>
+                <div class="layer-content">
+                    <div class="class-box">
+                        <div class="class-header">DataRepository</div>
+                        <div class="class-content">
+                            <div class="section-title">Attributes</div>
+                            <ul class="attributes">
+                                <li class="attribute">db_path: str</li>
+                            </ul>
+                            <div class="section-title">Methods</div>
+                            <ul class="methods">
+                                <li class="method">get_last_order_date()</li>
+                                <li class="method">insert_orders()</li>
+                                <li class="method">get_all_raw_orders()</li>
+                                <li class="method">save_positions()</li>
+                                <li class="method">get_positions_by_status()</li>
+                                <li class="method">get_daily_pnl_data()</li>
+                                <li class="method">get_positions_by_date()</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="class-box">
+                        <div class="class-header">OptionsDatabase</div>
+                        <div class="class-content">
+                            <div class="section-title">Attributes</div>
+                            <ul class="attributes">
+                                <li class="attribute">db_path: str</li>
+                            </ul>
+                            <div class="section-title">Methods</div>
+                            <ul class="methods">
+                                <li class="method">init_database()</li>
+                                <li class="method">insert_orders()</li>
+                                <li class="method">rebuild_positions()</li>
+                                <li class="method">get_positions_by_status()</li>
+                                <li class="method">get_all_orders()</li>
+                                <li class="method">get_daily_pnl_summary()</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Models -->
+        <div class="layer" style="grid-column: 1 / -1;">
+            <div class="layer-header">Data Models</div>
+            <div class="layer-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                <div class="class-box">
+                    <div class="class-header">Position</div>
+                    <div class="class-content">
+                        <div class="section-title">Attributes</div>
+                        <ul class="attributes">
+                            <li class="attribute">option_key: str</li>
+                            <li class="attribute">symbol: str</li>
+                            <li class="attribute">open_date, close_date: str</li>
+                            <li class="attribute">expiration_date: str</li>
+                            <li class="attribute">strike_price: str</li>
+                            <li class="attribute">quantity: int</li>
+                            <li class="attribute">open_price, close_price: float</li>
+                            <li class="attribute">open_premium, close_premium: float</li>
+                            <li class="attribute">net_credit: float</li>
+                            <li class="attribute">strategy, direction: str</li>
+                            <li class="attribute">option_type: str</li>
+                            <li class="attribute">status: str</li>
+                        </ul>
+                        <div class="section-title">Methods</div>
+                        <ul class="methods">
+                            <li class="method">from_dict()</li>
+                            <li class="method">to_dict()</li>
+                            <li class="method">is_profitable</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="class-box">
+                    <div class="class-header">OptionOrder</div>
+                    <div class="class-content">
+                        <div class="section-title">Attributes</div>
+                        <ul class="attributes">
+                            <li class="attribute">robinhood_id: str</li>
+                            <li class="attribute">symbol: str</li>
+                            <li class="attribute">created_at: str</li>
+                            <li class="attribute">position_effect: str</li>
+                            <li class="attribute">price: float</li>
+                            <li class="attribute">quantity: int</li>
+                            <li class="attribute">premium: float</li>
+                            <li class="attribute">strategy: str</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="class-box">
+                    <div class="class-header">PnLSummary</div>
+                    <div class="class-content">
+                        <div class="section-title">Attributes</div>
+                        <ul class="attributes">
+                            <li class="attribute">total_pnl: float</li>
+                            <li class="attribute">closed_pnl: float</li>
+                            <li class="attribute">expired_pnl: float</li>
+                            <li class="attribute">open_positions_count: int</li>
+                            <li class="attribute">total_positions: int</li>
+                        </ul>
+                        <div class="section-title">Methods</div>
+                        <ul class="methods">
+                            <li class="method">from_positions()</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="class-box">
+                    <div class="class-header">DailyPnLSummary</div>
+                    <div class="class-content">
+                        <div class="section-title">Attributes</div>
+                        <ul class="attributes">
+                            <li class="attribute">date: str</li>
+                            <li class="attribute">pnl: float</li>
+                            <li class="attribute">position_count: int</li>
+                            <li class="attribute">details: str</li>
+                        </ul>
+                        <div class="section-title">Methods</div>
+                        <ul class="methods">
+                            <li class="method">to_dict()</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relationships -->
+        <div class="relationships">
+            <h2>Component Relationships</h2>
+            <div class="relationship">
+                <strong>SmartDataFetcher</strong> → uses → <strong>OptionService</strong> (composition)
+            </div>
+            <div class="relationship">
+                <strong>SmartDataFetcher</strong> → uses → <strong>OptionsDatabase</strong> (composition)
+            </div>
+            <div class="relationship">
+                <strong>OptionService</strong> → uses → <strong>DataRepository</strong> (composition)
+            </div>
+            <div class="relationship">
+                <strong>OptionService</strong> → uses → <strong>PnLCalculator</strong> (composition)
+            </div>
+            <div class="relationship">
+                <strong>OptionService</strong> → uses → <strong>PositionClassifier</strong> (composition)
+            </div>
+            <div class="relationship">
+                <strong>OptionService</strong> → creates → <strong>Position</strong> objects (factory pattern)
+            </div>
+            <div class="relationship">
+                <strong>DataRepository</strong> → queries → <strong>SQLite Database</strong> (data access)
+            </div>
+            <div class="relationship">
+                <strong>OptionsDatabase</strong> → delegates to → <strong>OptionService</strong> (facade pattern)
+            </div>
+        </div>
+
+        <!-- API Endpoints -->
+        <div class="api-endpoints">
+            <h2>Flask API Endpoints</h2>
+            <div class="endpoint">GET /api/options → SmartDataFetcher.get_processed_data()</div>
+            <div class="endpoint">POST /api/update → SmartDataFetcher.update_data()</div>
+            <div class="endpoint">GET /api/daily-pnl → OptionService.get_daily_pnl_summary()</div>
+            <div class="endpoint">GET /api/positions/date/&lt;date&gt; → OptionService.get_positions_by_date()</div>
+        </div>
+
+        <!-- Data Flow -->
+        <div class="flow-diagram">
+            <h2>Typical Data Processing Flow</h2>
+            <div class="flow-step">1. <strong>rh_web.py</strong> receives API request</div>
+            <div class="flow-step">2. <strong>SmartDataFetcher</strong> coordinates the operation</div>
+            <div class="flow-step">3. <strong>OptionService</strong> retrieves raw orders via <strong>DataRepository</strong></div>
+            <div class="flow-step">4. <strong>PnLCalculator</strong> computes position P&L</div>
+            <div class="flow-step">5. <strong>PositionClassifier</strong> determines position status</div>
+            <div class="flow-step">6. <strong>Position</strong> objects are created and returned</div>
+            <div class="flow-step">7. Response serialized and sent to frontend</div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #f1f3f4; border-left: 4px solid #333; font-size: 12px;">
+            <strong>Key Architecture Patterns:</strong><br>
+            • <strong>Service Layer:</strong> Business logic separated from data access<br>
+            • <strong>Repository Pattern:</strong> DataRepository abstracts database operations<br>
+            • <strong>Factory Pattern:</strong> OptionService creates Position objects<br>
+            • <strong>Static Utility Classes:</strong> PnLCalculator, PositionClassifier<br>
+            • <strong>Data Models:</strong> Position, OptionOrder encapsulate data structure<br>
+            • <strong>Facade Pattern:</strong> OptionsDatabase provides simplified interface
+        </div>
+    </div>
+</body>
+</html>
