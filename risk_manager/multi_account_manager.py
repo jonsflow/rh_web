@@ -5,9 +5,9 @@ Orchestrates multiple isolated BaseRiskManager instances for different Robinhood
 """
 
 import robin_stocks.robinhood as r
-from account_detector import AccountDetector
-from base_risk_manager import BaseRiskManager
-from position_manager import position_manager
+from shared.account_detector import AccountDetector
+from risk_manager.base_risk_manager import BaseRiskManager
+from shared.position_manager import position_manager
 import threading
 import time
 import logging

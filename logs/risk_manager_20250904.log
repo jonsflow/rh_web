@@ -1,0 +1,12 @@
+2025-09-04 08:22:46,691 - INFO - ============================================================
+2025-09-04 08:22:46,692 - INFO - RISK MANAGER SESSION STARTED
+2025-09-04 08:22:46,692 - INFO - ============================================================
+2025-09-04 08:22:46,695 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-04 08:22:46,695 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-04 08:22:48,861 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-04 08:22:48,863 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-04 08:22:48,863 - INFO - Authenticating with Robinhood...
+2025-09-04 08:22:49,120 - INFO - Successfully authenticated with Robinhood
+2025-09-04 08:22:49,488 - INFO - Detected 2 account(s)
+2025-09-04 08:22:50,259 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-04 08:22:50,259 - INFO - Trading Mode: LIVE TRADING

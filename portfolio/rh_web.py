@@ -1,22 +1,18 @@
-import robin_stocks.robinhood as r
-import pandas as pd
-import datetime
-import getpass
 import json
 import traceback
 from flask import Flask, render_template, jsonify, request, url_for, send_from_directory, redirect
-try:
-    from .data_fetcher import SmartDataFetcher
-except ImportError:
-    from data_fetcher import SmartDataFetcher
+from portfolio.data_fetcher import SmartDataFetcher
 
-# Update the Flask app initialization to serve static files - point to shared static
-app = Flask(__name__, static_url_path='/static', static_folder='../shared/static')
+# Update the Flask app initialization to serve static files
+app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
 
 # Initialize the smart data fetcher
 data_fetcher = SmartDataFetcher()
 
-# Static files now served automatically from ../shared/static
+# Add route to serve static files
+@app.route('/static/<path:path>')
+def send_static(path):
+    return send_from_directory('static', path)
 
 def fetch_and_process_option_orders():
     """Fetch and process option orders using the normalized database approach"""
@@ -51,6 +47,7 @@ def fetch_and_process_option_orders():
 def index():
     """Render the main page"""
     return render_template('index.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -115,24 +112,7 @@ def get_options():
                 'details': result['traceback']
             }), 500
         
-        # Ensure the result is JSON serializable
-        try:
-            # Try to serialize to JSON as a validation step
-            json_test = json.dumps(result)
-            return jsonify(result)
-        except TypeError as e:
-            print(f"JSON serialization error: {str(e)}")
-            
-            # Attempt to fix non-serializable values
-            if 'all_orders' in result:
-                for i, order in enumerate(result['all_orders']):
-                    for key, value in list(order.items()):
-                        if isinstance(value, (tuple, set)):
-                            result['all_orders'][i][key] = list(value)
-                        elif pd.isna(value):
-                            result['all_orders'][i][key] = None
-            
-            return jsonify(result)
+        return jsonify(result)
             
     except Exception as e:
         # Print the full error traceback to the console
@@ -142,6 +122,52 @@ def get_options():
         return jsonify({
             "error": "An internal error occurred while fetching options data"
         }), 500
+
+@app.route('/api/daily-pnl')
+def get_daily_pnl():
+    """API endpoint for calendar daily PnL data"""
+    try:
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        daily_summary = data_fetcher.option_service.get_daily_pnl_summary(start_date, end_date)
+        
+        return jsonify({
+            'success': True,
+            'daily_pnl': daily_summary
+        })
+        
+    except Exception as e:
+        print(f"Daily PnL API Error: {str(e)}")
+        print(traceback.format_exc())
+        
+        return jsonify({
+            'error': 'Failed to fetch daily PnL data'
+        }), 500
+
+@app.route('/api/positions/date/<date>')
+def get_positions_by_date(date):
+    """Get detailed positions for a specific date"""
+    try:
+        positions = data_fetcher.option_service.get_positions_by_date(date)
+        
+        # Convert Position objects to dictionaries for API response
+        positions_data = [pos.to_dict() for pos in positions]
+        
+        return jsonify({
+            'success': True,
+            'date': date,
+            'positions': positions_data
+        })
+        
+    except Exception as e:
+        print(f"Positions by Date API Error: {str(e)}")
+        print(traceback.format_exc())
+        
+        return jsonify({
+            'error': f'Failed to fetch positions for date {date}'
+        }), 500
+
 
 if __name__ == '__main__':
     # Trigger authentication on startup like main branch

@@ -1,0 +1,215 @@
+2025-09-02 12:31:23,126 - INFO - ============================================================
+2025-09-02 12:31:23,126 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:31:23,126 - INFO - ============================================================
+2025-09-02 12:31:23,128 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:31:23,128 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:31:34,180 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:31:34,181 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:31:34,499 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:31:34,758 - INFO - Detected 2 account(s)
+2025-09-02 12:31:35,179 - INFO - Auto-started monitoring for 2 active account(s)
+2025-09-02 12:31:35,179 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:31:35,179 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:31:35,525 - INFO - ============================================================
+2025-09-02 12:31:35,525 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:31:35,525 - INFO - ============================================================
+2025-09-02 12:31:35,528 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:31:35,528 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:31:46,934 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:31:46,935 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:31:47,099 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:31:47,202 - INFO - Detected 2 account(s)
+2025-09-02 12:31:47,577 - INFO - Auto-started monitoring for 2 active account(s)
+2025-09-02 12:31:47,577 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:31:47,578 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:32:29,002 - INFO - Account ...4234: Trailing stop enabled for SPY
+2025-09-02 12:32:29,002 - INFO - SUBMITTING REAL ORDER for SPY
+2025-09-02 12:32:29,003 - INFO - STOP-LIMIT ORDER: Stop=$0.95, Limit=$0.92
+2025-09-02 12:32:29,732 - INFO - REAL ORDER SUBMITTED SUCCESSFULLY: 68b72a2d-c61d-4ccd-9024-5b36f841d33c
+2025-09-02 12:39:12,120 - INFO - ============================================================
+2025-09-02 12:39:12,120 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:39:12,120 - INFO - ============================================================
+2025-09-02 12:39:12,123 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:39:12,123 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:39:18,441 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:39:18,441 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:39:18,761 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:39:19,021 - INFO - Detected 2 account(s)
+2025-09-02 12:39:19,615 - INFO - Auto-started monitoring for 1 active account(s)
+2025-09-02 12:39:19,616 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:39:19,616 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:39:19,858 - INFO - ============================================================
+2025-09-02 12:39:19,858 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:39:19,858 - INFO - ============================================================
+2025-09-02 12:39:19,860 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:39:19,861 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:39:22,600 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:39:22,600 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:39:22,757 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:39:23,001 - INFO - Detected 2 account(s)
+2025-09-02 12:39:23,569 - INFO - Auto-started monitoring for 1 active account(s)
+2025-09-02 12:39:23,569 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:39:23,569 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:39:24,484 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:39:26,340 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:39:35,317 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:39:47,890 - INFO - ============================================================
+2025-09-02 12:39:47,890 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:39:47,891 - INFO - ============================================================
+2025-09-02 12:39:47,893 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:39:47,893 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:39:50,707 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:39:50,708 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:39:50,884 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:39:51,040 - INFO - Detected 2 account(s)
+2025-09-02 12:39:51,524 - INFO - Auto-started monitoring for 1 active account(s)
+2025-09-02 12:39:51,525 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:39:51,525 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:39:51,779 - INFO - ============================================================
+2025-09-02 12:39:51,779 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:39:51,779 - INFO - ============================================================
+2025-09-02 12:39:51,781 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:39:51,782 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:39:52,705 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:39:52,705 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:39:52,859 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:39:52,948 - INFO - Detected 2 account(s)
+2025-09-02 12:39:53,591 - INFO - Auto-started monitoring for 1 active account(s)
+2025-09-02 12:39:53,591 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:39:53,591 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:40:03,323 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:40:13,200 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:40:23,208 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:40:34,739 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:40:44,752 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:40:54,744 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:41:04,741 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:41:14,738 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:41:24,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:41:34,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:41:44,741 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:41:54,755 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:42:04,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:42:14,741 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:42:24,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:42:34,742 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:42:44,743 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:42:54,738 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:43:04,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:43:14,743 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:43:24,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:43:34,741 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:43:44,740 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:43:54,743 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:44:04,742 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:44:14,742 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:44:24,742 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:44:34,778 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:44:44,741 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:44:54,747 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:45:04,742 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:45:14,744 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:45:24,744 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:45:34,745 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:45:44,746 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:45:54,785 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:46:04,758 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:46:14,747 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:46:24,749 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:46:34,750 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:46:44,749 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:46:54,749 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:47:04,757 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:47:14,793 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:47:24,749 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:47:34,750 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:47:44,749 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:47:54,753 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:48:04,748 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:48:14,844 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:48:24,840 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:48:34,882 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:48:44,844 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:48:54,846 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:49:04,843 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:49:14,844 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:49:24,848 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:49:34,847 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:49:44,847 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:49:54,877 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:50:04,848 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:50:14,848 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:50:24,847 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:50:34,850 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:50:44,848 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:50:45,513 - INFO - ============================================================
+2025-09-02 12:50:45,513 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:50:45,513 - INFO - ============================================================
+2025-09-02 12:50:45,517 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:50:45,517 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:57:47,900 - INFO - ============================================================
+2025-09-02 12:57:47,900 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:57:47,900 - INFO - ============================================================
+2025-09-02 12:57:47,902 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:57:47,903 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:57:49,409 - INFO - Live trading mode cancelled by user. Exiting.
+2025-09-02 12:57:59,930 - INFO - ============================================================
+2025-09-02 12:57:59,930 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:57:59,930 - INFO - ============================================================
+2025-09-02 12:57:59,933 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:57:59,933 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:58:04,909 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:58:04,909 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:58:04,909 - INFO - Authenticating with Robinhood...
+2025-09-02 12:58:05,186 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:58:05,440 - INFO - Detected 2 account(s)
+2025-09-02 12:58:06,050 - INFO - Auto-started monitoring for 1 active account(s)
+2025-09-02 12:58:06,051 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:58:06,051 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:58:06,346 - INFO - ============================================================
+2025-09-02 12:58:06,346 - INFO - RISK MANAGER SESSION STARTED
+2025-09-02 12:58:06,346 - INFO - ============================================================
+2025-09-02 12:58:06,348 - WARNING - LIVE TRADING MODE ENABLED!
+2025-09-02 12:58:06,349 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-09-02 12:58:10,435 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-09-02 12:58:10,435 - INFO - Initializing Multi-Account Risk Manager System...
+2025-09-02 12:58:10,435 - INFO - Authenticating with Robinhood...
+2025-09-02 12:58:10,592 - INFO - Successfully authenticated with Robinhood
+2025-09-02 12:58:10,686 - INFO - Detected 2 account(s)
+2025-09-02 12:58:11,199 - INFO - Auto-started monitoring for 1 active account(s)
+2025-09-02 12:58:11,199 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-09-02 12:58:11,200 - INFO - Trading Mode: LIVE TRADING
+2025-09-02 12:58:14,976 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:14,980 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:14,984 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:14,988 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:15,680 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:15,688 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:15,689 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:15,695 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:15,886 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:15,927 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,332 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,382 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,388 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,425 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,618 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,638 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:16,947 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,029 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,042 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,052 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,262 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,302 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,571 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,695 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,705 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,728 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,884 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:17,920 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:18,185 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:18,354 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:18,373 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:18,416 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:18,507 - ERROR - Error fetching real orders: name 'r' is not defined
+2025-09-02 12:58:18,884 - ERROR - Error fetching real orders: name 'r' is not defined

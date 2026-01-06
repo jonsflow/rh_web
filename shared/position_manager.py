@@ -9,7 +9,7 @@ import datetime
 import threading
 import logging
 from typing import Dict, Optional, List
-from position_types import LongPosition
+from shared.position_types import LongPosition
 
 class PositionManager:
     """Centralized position management for multi-account system"""

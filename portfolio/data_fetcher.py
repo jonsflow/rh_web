@@ -1,15 +1,45 @@
 import robin_stocks.robinhood as r
 import datetime
 import traceback
+import json
+import os
 from typing import Dict, List, Optional
-try:
-    from .database import OptionsDatabase
-except ImportError:
-    from database import OptionsDatabase
+from portfolio.database import OptionsDatabase
+from services.option_service import OptionService
 
 class SmartDataFetcher:
-    def __init__(self, db_path: str = "options.db"):
+    def __init__(self, db_path: str = "options.db", config_path: str = "config.json"):
         self.db = OptionsDatabase(db_path)
+        self.option_service = OptionService(db_path)
+        self.config = self.load_config(config_path)
+    
+    def load_config(self, config_path: str) -> Dict:
+        """Load configuration from JSON file with fallback defaults"""
+        default_config = {
+            "data_fetching": {
+                "default_start_date": "2024-01-01",
+                "default_days_back": 60,
+                "full_refresh_days_back": 90,
+                "use_start_of_year": True,
+                "incremental_buffer_days": 1
+            }
+        }
+        
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    # Merge with defaults to ensure all keys exist
+                    for key in default_config["data_fetching"]:
+                        if key not in config.get("data_fetching", {}):
+                            config.setdefault("data_fetching", {})[key] = default_config["data_fetching"][key]
+                    return config
+            else:
+                print(f"Config file {config_path} not found, using defaults")
+                return default_config
+        except Exception as e:
+            print(f"Error loading config file {config_path}: {e}, using defaults")
+            return default_config
     
     def login_robinhood(self, username: str = None, password: str = None) -> bool:
         """Login to Robinhood with terminal-based credential handling (like main branch)"""
@@ -32,23 +62,40 @@ class SmartDataFetcher:
                 print(f"Login failed: {str(login_error)}")
                 return False
     
-    def get_incremental_start_date(self) -> str:
-        """Determine the start date for incremental fetching"""
+    def get_start_date(self) -> str:
+        """Determine the start date based on config"""
         last_order_date = self.db.get_last_order_date()
         
         if last_order_date:
             # Start from the last order date
             try:
                 last_date = datetime.datetime.strptime(last_order_date[:10], '%Y-%m-%d')
-                # Go back 1 day to catch any orders that might have been missed
-                start_date = last_date - datetime.timedelta(days=1)
+                # Go back configured number of days to catch any orders that might have been missed
+                buffer_days = self.config["data_fetching"]["incremental_buffer_days"]
+                start_date = last_date - datetime.timedelta(days=buffer_days)
                 return start_date.strftime('%Y-%m-%d')
             except ValueError:
                 # If date parsing fails, fall back to default
                 pass
         
-        # Default to 60 days ago for new installations
-        default_start = datetime.datetime.now() - datetime.timedelta(days=60)
+        # Default behavior for new installations based on config
+        config = self.config["data_fetching"]
+        
+        if config["use_start_of_year"]:
+            # Use January 1st of current year
+            current_year = datetime.datetime.now().year
+            default_start = datetime.datetime(current_year, 1, 1)
+        else:
+            # Use either fixed date or days back from today
+            if config["default_start_date"]:
+                try:
+                    default_start = datetime.datetime.strptime(config["default_start_date"], '%Y-%m-%d')
+                except ValueError:
+                    # Fallback to days back if date parsing fails
+                    default_start = datetime.datetime.now() - datetime.timedelta(days=config["default_days_back"])
+            else:
+                default_start = datetime.datetime.now() - datetime.timedelta(days=config["default_days_back"])
+        
         return default_start.strftime('%Y-%m-%d')
     
     def fetch_option_orders(self, start_date: str = None, force_full_refresh: bool = False) -> Dict:
@@ -56,10 +103,18 @@ class SmartDataFetcher:
         try:
             if not start_date:
                 if force_full_refresh:
-                    # For full refresh, go back 90 days
-                    start_date = (datetime.datetime.now() - datetime.timedelta(days=90)).strftime('%Y-%m-%d')
+                    # For full refresh, use January 1st if configured, otherwise use days back
+                    config = self.config["data_fetching"]
+                    if config["use_start_of_year"]:
+                        current_year = datetime.datetime.now().year
+                        start_date = datetime.datetime(current_year, 1, 1).strftime('%Y-%m-%d')
+                    elif config["default_start_date"]:
+                        start_date = config["default_start_date"]
+                    else:
+                        days_back = config["full_refresh_days_back"]
+                        start_date = (datetime.datetime.now() - datetime.timedelta(days=days_back)).strftime('%Y-%m-%d')
                 else:
-                    start_date = self.get_incremental_start_date()
+                    start_date = self.get_start_date()
             
             print(f"Fetching orders from {start_date}")
             
@@ -98,26 +153,16 @@ class SmartDataFetcher:
             }
     
     def get_processed_data(self) -> Dict:
-        """Get processed data from the database"""
+        """Get processed data using the service layer"""
         try:
-            # Get positions by status
-            open_positions = self.db.get_positions_by_status('open')
-            closed_positions = self.db.get_positions_by_status('closed')
-            expired_positions = self.db.get_positions_by_status('expired')
-            all_orders = self.db.get_all_orders()
-            
-            return {
-                'open_positions': open_positions,
-                'closed_positions': closed_positions,
-                'expired_positions': expired_positions,
-                'all_orders': all_orders
-            }
+            # Use the option service to get processed data
+            return self.option_service.get_processed_data_for_api()
             
         except Exception as e:
             print(f"Error getting processed data: {str(e)}")
             return {
                 'error': True,
-                'message': 'Failed to retrieve processed data from database'
+                'message': 'Failed to retrieve processed data from service layer'
             }
     
     def update_data(self, username: str = None, password: str = None, force_full_refresh: bool = False) -> Dict:

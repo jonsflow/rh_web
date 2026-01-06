@@ -1,0 +1,286 @@
+2025-08-29 23:02:53,168 - INFO - ============================================================
+2025-08-29 23:02:53,168 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:02:53,168 - INFO - ============================================================
+2025-08-29 23:02:53,170 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:02:53,170 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:03:28,333 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:03:28,686 - INFO - Detected 2 account(s)
+2025-08-29 23:05:52,254 - INFO - ============================================================
+2025-08-29 23:05:52,254 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:05:52,254 - INFO - ============================================================
+2025-08-29 23:05:52,256 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:05:52,256 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:05:52,482 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:05:52,587 - INFO - Detected 2 account(s)
+2025-08-29 23:05:53,153 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:05:53,153 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:05:53,153 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:05:53,459 - INFO - ============================================================
+2025-08-29 23:05:53,459 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:05:53,459 - INFO - ============================================================
+2025-08-29 23:05:53,461 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:05:53,461 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:05:53,662 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:05:53,822 - INFO - Detected 2 account(s)
+2025-08-29 23:05:54,375 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:05:54,375 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:05:54,375 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:07:49,745 - INFO - ============================================================
+2025-08-29 23:07:49,745 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:07:49,745 - INFO - ============================================================
+2025-08-29 23:07:49,747 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:07:49,748 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:07:50,016 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:07:50,109 - INFO - Detected 2 account(s)
+2025-08-29 23:07:50,659 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:07:50,659 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:07:50,660 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:08:00,436 - INFO - ============================================================
+2025-08-29 23:08:00,436 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:08:00,436 - INFO - ============================================================
+2025-08-29 23:08:00,439 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:08:00,439 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:08:00,596 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:08:00,689 - INFO - Detected 2 account(s)
+2025-08-29 23:08:01,155 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:08:01,155 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:08:01,155 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:08:34,513 - INFO - ============================================================
+2025-08-29 23:08:34,513 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:08:34,513 - INFO - ============================================================
+2025-08-29 23:08:34,515 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:08:34,515 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:08:34,665 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:08:34,751 - INFO - Detected 2 account(s)
+2025-08-29 23:08:35,449 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:08:35,450 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:08:35,450 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:08:35,702 - INFO - ============================================================
+2025-08-29 23:08:35,702 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:08:35,702 - INFO - ============================================================
+2025-08-29 23:08:35,705 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:08:35,705 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:08:35,923 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:08:36,016 - INFO - Detected 2 account(s)
+2025-08-29 23:08:36,644 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:08:36,644 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:08:36,644 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:09:43,665 - INFO - ============================================================
+2025-08-29 23:09:43,665 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:09:43,665 - INFO - ============================================================
+2025-08-29 23:09:43,668 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:09:43,668 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:09:43,872 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:09:43,963 - INFO - Detected 2 account(s)
+2025-08-29 23:09:44,656 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:09:44,656 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:09:44,656 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:09:51,234 - INFO - ============================================================
+2025-08-29 23:09:51,234 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:09:51,234 - INFO - ============================================================
+2025-08-29 23:09:51,236 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:09:51,236 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:09:51,451 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:09:51,537 - INFO - Detected 2 account(s)
+2025-08-29 23:09:52,268 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:09:52,269 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:09:52,269 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:10:05,081 - INFO - ============================================================
+2025-08-29 23:10:05,081 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:10:05,081 - INFO - ============================================================
+2025-08-29 23:10:05,084 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:10:05,084 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:10:05,246 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:10:05,339 - INFO - Detected 2 account(s)
+2025-08-29 23:10:06,156 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:10:06,156 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:10:11,687 - INFO - ============================================================
+2025-08-29 23:10:11,687 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:10:11,687 - INFO - ============================================================
+2025-08-29 23:10:11,689 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:10:11,689 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:10:11,932 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:10:12,093 - INFO - Detected 2 account(s)
+2025-08-29 23:10:12,721 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:10:12,721 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:10:12,721 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:10:24,561 - INFO - ============================================================
+2025-08-29 23:10:24,561 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:10:24,561 - INFO - ============================================================
+2025-08-29 23:10:24,563 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:10:24,563 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:10:24,739 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:10:24,822 - INFO - Detected 2 account(s)
+2025-08-29 23:10:25,330 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:10:25,330 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:10:25,331 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:10:29,855 - INFO - ============================================================
+2025-08-29 23:10:29,855 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:10:29,855 - INFO - ============================================================
+2025-08-29 23:10:29,858 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:10:29,858 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:10:29,996 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:10:30,088 - INFO - Detected 2 account(s)
+2025-08-29 23:10:30,567 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:10:30,567 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:10:30,567 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:10:45,494 - INFO - ============================================================
+2025-08-29 23:10:45,494 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:10:45,494 - INFO - ============================================================
+2025-08-29 23:10:45,496 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:10:45,496 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:10:45,650 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:10:45,740 - INFO - Detected 2 account(s)
+2025-08-29 23:10:46,223 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:10:46,223 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:10:46,223 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:11:06,289 - INFO - ============================================================
+2025-08-29 23:11:06,289 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:11:06,289 - INFO - ============================================================
+2025-08-29 23:11:06,292 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:11:06,292 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:11:06,484 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:11:06,577 - INFO - Detected 2 account(s)
+2025-08-29 23:11:07,171 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:11:07,171 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:11:07,172 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:11:30,315 - INFO - ============================================================
+2025-08-29 23:11:30,315 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:11:30,315 - INFO - ============================================================
+2025-08-29 23:11:30,317 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:11:30,317 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:11:30,507 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:11:30,600 - INFO - Detected 2 account(s)
+2025-08-29 23:11:31,170 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:11:31,170 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:11:31,171 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:11:40,830 - INFO - ============================================================
+2025-08-29 23:11:40,830 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:11:40,830 - INFO - ============================================================
+2025-08-29 23:11:40,833 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:11:40,833 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:11:40,982 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:11:41,069 - INFO - Detected 2 account(s)
+2025-08-29 23:11:41,549 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:11:41,550 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:11:41,550 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:11:50,172 - INFO - ============================================================
+2025-08-29 23:11:50,172 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:11:50,172 - INFO - ============================================================
+2025-08-29 23:11:50,175 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:11:50,175 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:11:50,321 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:11:50,419 - INFO - Detected 2 account(s)
+2025-08-29 23:11:51,101 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:11:51,101 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:11:51,101 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:15:27,746 - INFO - ============================================================
+2025-08-29 23:15:27,746 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:15:27,746 - INFO - ============================================================
+2025-08-29 23:15:27,748 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:15:27,748 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:15:27,944 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:15:28,099 - INFO - Detected 2 account(s)
+2025-08-29 23:15:28,852 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:15:28,852 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:15:28,852 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:15:29,155 - INFO - ============================================================
+2025-08-29 23:15:29,155 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:15:29,155 - INFO - ============================================================
+2025-08-29 23:15:29,158 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:15:29,158 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:15:29,295 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:15:29,384 - INFO - Detected 2 account(s)
+2025-08-29 23:15:30,008 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:15:30,008 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:15:30,008 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:17:38,499 - INFO - ============================================================
+2025-08-29 23:17:38,499 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:17:38,499 - INFO - ============================================================
+2025-08-29 23:17:38,501 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:17:38,501 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:17:38,828 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:17:38,923 - INFO - Detected 2 account(s)
+2025-08-29 23:17:39,423 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:17:39,423 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:17:39,424 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:18:39,114 - INFO - ============================================================
+2025-08-29 23:18:39,115 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:18:39,115 - INFO - ============================================================
+2025-08-29 23:18:39,117 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:18:39,118 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:18:39,271 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:18:39,376 - INFO - Detected 2 account(s)
+2025-08-29 23:18:40,056 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:18:40,056 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:18:40,056 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:22:17,507 - INFO - ============================================================
+2025-08-29 23:22:17,507 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:22:17,507 - INFO - ============================================================
+2025-08-29 23:22:17,512 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:22:17,512 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:22:17,814 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:22:17,903 - INFO - Detected 2 account(s)
+2025-08-29 23:22:18,504 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:22:18,505 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:22:18,505 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:39:41,302 - INFO - ============================================================
+2025-08-29 23:39:41,303 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:39:41,303 - INFO - ============================================================
+2025-08-29 23:39:41,305 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:39:41,305 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:39:41,603 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:39:41,971 - INFO - Detected 2 account(s)
+2025-08-29 23:39:42,562 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:39:42,562 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:39:42,562 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:39:42,992 - INFO - ============================================================
+2025-08-29 23:39:42,992 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:39:42,992 - INFO - ============================================================
+2025-08-29 23:39:42,994 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:39:42,995 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:39:43,212 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:39:43,301 - INFO - Detected 2 account(s)
+2025-08-29 23:39:43,860 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:39:43,860 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:39:43,860 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:44:55,245 - INFO - ============================================================
+2025-08-29 23:44:55,246 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:44:55,246 - INFO - ============================================================
+2025-08-29 23:44:55,248 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:44:55,248 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:44:55,474 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:44:55,738 - INFO - Detected 2 account(s)
+2025-08-29 23:44:56,253 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:44:56,253 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:44:56,253 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:45:06,956 - INFO - ============================================================
+2025-08-29 23:45:06,956 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:45:06,956 - INFO - ============================================================
+2025-08-29 23:45:06,958 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:45:06,958 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:45:07,173 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:45:07,392 - INFO - Detected 2 account(s)
+2025-08-29 23:45:07,956 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:45:07,956 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:45:07,956 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:45:16,602 - INFO - ============================================================
+2025-08-29 23:45:16,602 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:45:16,602 - INFO - ============================================================
+2025-08-29 23:45:16,605 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:45:16,606 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:45:16,746 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:45:16,842 - INFO - Detected 2 account(s)
+2025-08-29 23:45:17,376 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:45:17,376 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:45:17,377 - INFO - Trading Mode: SIMULATION
+2025-08-29 23:45:31,172 - INFO - ============================================================
+2025-08-29 23:45:31,172 - INFO - RISK MANAGER SESSION STARTED
+2025-08-29 23:45:31,172 - INFO - ============================================================
+2025-08-29 23:45:31,175 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-29 23:45:31,175 - INFO - Initializing Multi-Account Risk Manager System...
+2025-08-29 23:45:31,324 - INFO - Successfully authenticated with Robinhood
+2025-08-29 23:45:31,413 - INFO - Detected 2 account(s)
+2025-08-29 23:45:32,026 - INFO - Auto-started monitoring for 1 active account(s)
+2025-08-29 23:45:32,026 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2025-08-29 23:45:32,026 - INFO - Trading Mode: SIMULATION

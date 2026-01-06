@@ -1,0 +1,347 @@
+2025-08-25 08:25:35,211 - INFO - ============================================================
+2025-08-25 08:25:35,211 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:25:35,211 - INFO - ============================================================
+2025-08-25 08:25:36,325 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://100.112.18.107:5001
+2025-08-25 08:25:36,325 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-25 08:25:36,326 - INFO -  * Restarting with stat
+2025-08-25 08:25:36,491 - INFO - ============================================================
+2025-08-25 08:25:36,491 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:25:36,491 - INFO - ============================================================
+2025-08-25 08:25:37,541 - WARNING -  * Debugger is active!
+2025-08-25 08:25:37,551 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:25:45,406 - INFO - 127.0.0.1 - - [25/Aug/2025 08:25:45] "GET / HTTP/1.1" 200 -
+2025-08-25 08:25:45,477 - INFO - 127.0.0.1 - - [25/Aug/2025 08:25:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:25:45,478 - INFO - 127.0.0.1 - - [25/Aug/2025 08:25:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:25:55,489 - INFO - 127.0.0.1 - - [25/Aug/2025 08:25:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:25:55,490 - INFO - 127.0.0.1 - - [25/Aug/2025 08:25:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:26:05,487 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:26:05,488 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:26:15,485 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:26:15,487 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:26:25,489 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:26:25,490 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:26:35,490 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:26:35,491 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:26:45,489 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:26:45,491 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:26:55,489 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:26:55,491 - INFO - 127.0.0.1 - - [25/Aug/2025 08:26:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:27:05,489 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:27:05,490 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:27:15,490 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:27:15,491 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:27:25,494 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:27:25,495 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:27:35,492 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:27:35,493 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:27:45,491 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:27:45,492 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:27:55,492 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:27:55,493 - INFO - 127.0.0.1 - - [25/Aug/2025 08:27:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:28:05,493 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:28:05,493 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:28:15,495 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:28:15,495 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:28:25,494 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:28:25,495 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:28:35,494 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:28:35,495 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:28:45,496 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:28:45,497 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:28:55,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:28:55,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:28:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:29:05,497 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:29:05,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:29:15,497 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:29:15,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:29:25,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:29:25,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:29:35,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:29:35,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:29:45,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:29:45,500 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:29:55,496 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:29:55,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:29:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:30:05,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:30:05,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:30:15,497 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:30:15,498 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:30:25,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:30:25,500 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:30:35,499 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:30:35,500 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:30:45,504 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:30:45,505 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:30:55,502 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:30:55,503 - INFO - 127.0.0.1 - - [25/Aug/2025 08:30:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:31:05,506 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:31:05,507 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:31:15,507 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:31:15,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:31:25,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:31:25,509 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:31:35,507 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:31:35,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:31:45,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:31:45,509 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:31:55,503 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:31:55,504 - INFO - 127.0.0.1 - - [25/Aug/2025 08:31:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:05,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:05] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:05,509 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:05] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:15,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:15] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:15,509 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:15] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:25,510 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:25] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:25,511 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:25] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:35,511 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:35] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:35,512 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:35] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:40,200 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:40] "POST /api/trailing-stop HTTP/1.1" 200 -
+2025-08-25 08:32:40,207 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:40,208 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:45,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:45] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:45,509 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:45] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:46,842 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:46] "POST /api/trailing-stop HTTP/1.1" 200 -
+2025-08-25 08:32:46,851 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:46] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:46,852 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:46] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:55,508 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:55,509 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:55] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:32:55,589 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:55] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:32:57,663 - INFO - 127.0.0.1 - - [25/Aug/2025 08:32:57] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:33:10,165 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:33:10,166 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:33:20,171 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:33:20,172 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:33:30,175 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:33:30,175 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:33:40,169 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:33:40,170 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:33:50,173 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:33:50,174 - INFO - 127.0.0.1 - - [25/Aug/2025 08:33:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:34:00,171 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:34:00,173 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:34:10,174 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:34:10,175 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:34:20,173 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:34:20,174 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:34:30,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:34:30,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:34:40,175 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:34:40,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:34:50,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:34:50,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:34:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:35:00,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:35:00,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:35:10,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:35:10,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:35:19,256 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:35:19,352 - INFO -  * Restarting with stat
+2025-08-25 08:35:19,688 - INFO - ============================================================
+2025-08-25 08:35:19,689 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:35:19,689 - INFO - ============================================================
+2025-08-25 08:35:20,771 - WARNING -  * Debugger is active!
+2025-08-25 08:35:20,778 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:35:20,825 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:35:20,827 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:35:30,181 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:35:30,182 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:35:40,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:35:40,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:35:41,633 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:35:41,666 - INFO -  * Restarting with stat
+2025-08-25 08:35:41,916 - INFO - ============================================================
+2025-08-25 08:35:41,916 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:35:41,916 - INFO - ============================================================
+2025-08-25 08:35:42,871 - WARNING -  * Debugger is active!
+2025-08-25 08:35:42,881 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:35:50,181 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:35:50,182 - INFO - 127.0.0.1 - - [25/Aug/2025 08:35:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:36:00,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:36:00,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:36:10,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:36:10,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:36:20,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:36:20,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:36:30,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:36:30,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:36:40,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:36:40,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:36:47,328 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:36:47,365 - INFO -  * Restarting with stat
+2025-08-25 08:36:47,662 - INFO - ============================================================
+2025-08-25 08:36:47,662 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:36:47,662 - INFO - ============================================================
+2025-08-25 08:36:48,713 - WARNING -  * Debugger is active!
+2025-08-25 08:36:48,721 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:36:50,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:36:50,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:36:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:37:00,175 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:37:00,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:37:10,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:37:10,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:37:20,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:37:20,176 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:37:30,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:37:30,181 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:37:32,411 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:37:32,445 - INFO -  * Restarting with stat
+2025-08-25 08:37:32,715 - INFO - ============================================================
+2025-08-25 08:37:32,716 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:37:32,716 - INFO - ============================================================
+2025-08-25 08:37:33,750 - WARNING -  * Debugger is active!
+2025-08-25 08:37:33,758 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:37:40,183 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:37:40,183 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:37:50,174 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:37:50,175 - INFO - 127.0.0.1 - - [25/Aug/2025 08:37:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:00,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:00,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:10,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:10,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:11,571 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:11] "POST /api/trailing-stop HTTP/1.1" 200 -
+2025-08-25 08:38:11,579 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:11] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:11,581 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:11] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:20,177 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:20,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:30,178 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:30,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:33,613 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:38:33,702 - INFO -  * Restarting with stat
+2025-08-25 08:38:33,973 - INFO - ============================================================
+2025-08-25 08:38:33,973 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:38:33,973 - INFO - ============================================================
+2025-08-25 08:38:34,989 - WARNING -  * Debugger is active!
+2025-08-25 08:38:34,997 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:38:40,193 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:38:40,194 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:50,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:38:50,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:38:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:00,179 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:00,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:01,272 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:01] "POST /api/trailing-stop HTTP/1.1" 200 -
+2025-08-25 08:39:01,280 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:01] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:01,283 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:01] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:10,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:10,180 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:20,182 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:20,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:30,182 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:30,183 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:40,176 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:39:40,244 - INFO -  * Restarting with stat
+2025-08-25 08:39:40,620 - INFO - ============================================================
+2025-08-25 08:39:40,620 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:39:40,620 - INFO - ============================================================
+2025-08-25 08:39:41,634 - WARNING -  * Debugger is active!
+2025-08-25 08:39:41,644 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:39:41,709 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:41] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:41,710 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:41] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:50,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:39:50,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:39:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:39:59,375 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:39:59,409 - INFO -  * Restarting with stat
+2025-08-25 08:39:59,665 - INFO - ============================================================
+2025-08-25 08:39:59,665 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:39:59,665 - INFO - ============================================================
+2025-08-25 08:40:00,638 - WARNING -  * Debugger is active!
+2025-08-25 08:40:00,646 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:40:00,691 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:40:00,692 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:40:08,977 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:40:09,025 - INFO -  * Restarting with stat
+2025-08-25 08:40:09,313 - INFO - ============================================================
+2025-08-25 08:40:09,313 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:40:09,313 - INFO - ============================================================
+2025-08-25 08:40:10,501 - WARNING -  * Debugger is active!
+2025-08-25 08:40:10,510 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:40:10,552 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:40:10,562 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:40:20,183 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:40:20,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:40:24,088 - INFO -  * Detected change in '/Users/clutchcoder/working/rh_web/risk_manager_web.py', reloading
+2025-08-25 08:40:24,121 - INFO -  * Restarting with stat
+2025-08-25 08:40:24,437 - INFO - ============================================================
+2025-08-25 08:40:24,438 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 08:40:24,438 - INFO - ============================================================
+2025-08-25 08:40:25,717 - WARNING -  * Debugger is active!
+2025-08-25 08:40:25,728 - INFO -  * Debugger PIN: 118-444-531
+2025-08-25 08:40:30,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:30] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:40:30,186 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:30] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:40:40,185 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:40] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:40:40,186 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:40] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:40:50,183 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:50] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:40:50,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:40:50] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:41:00,182 - INFO - 127.0.0.1 - - [25/Aug/2025 08:41:00] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:41:00,184 - INFO - 127.0.0.1 - - [25/Aug/2025 08:41:00] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:41:10,182 - INFO - 127.0.0.1 - - [25/Aug/2025 08:41:10] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:41:10,183 - INFO - 127.0.0.1 - - [25/Aug/2025 08:41:10] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 08:41:20,185 - INFO - 127.0.0.1 - - [25/Aug/2025 08:41:20] "GET /api/positions HTTP/1.1" 200 -
+2025-08-25 08:41:20,186 - INFO - 127.0.0.1 - - [25/Aug/2025 08:41:20] "GET /api/check-orders HTTP/1.1" 200 -
+2025-08-25 09:08:30,736 - INFO - ============================================================
+2025-08-25 09:08:30,736 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 09:08:30,736 - INFO - ============================================================
+2025-08-25 09:08:30,738 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-25 09:08:30,738 - INFO - Initializing Risk Manager...
+2025-08-25 09:08:30,986 - INFO - Successfully authenticated with Robinhood
+2025-08-25 09:08:31,736 - INFO - Loaded 2 long option positions
+2025-08-25 09:08:31,736 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 09:08:31,736 - INFO - Trading Mode: SIMULATION
+2025-08-25 09:08:31,992 - INFO - ============================================================
+2025-08-25 09:08:31,992 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 09:08:31,992 - INFO - ============================================================
+2025-08-25 09:08:31,994 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-25 09:08:31,994 - INFO - Initializing Risk Manager...
+2025-08-25 09:08:32,179 - INFO - Successfully authenticated with Robinhood
+2025-08-25 09:08:32,869 - INFO - Loaded 2 long option positions
+2025-08-25 09:08:32,869 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 09:08:32,869 - INFO - Trading Mode: SIMULATION
+2025-08-25 12:56:53,899 - INFO - ============================================================
+2025-08-25 12:56:53,899 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 12:56:53,899 - INFO - ============================================================
+2025-08-25 12:56:53,901 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-25 12:56:53,901 - INFO - Initializing Risk Manager...
+2025-08-25 12:56:54,156 - INFO - Successfully authenticated with Robinhood
+2025-08-25 12:56:55,276 - INFO - Loaded 2 long option positions
+2025-08-25 12:56:55,276 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 12:56:55,276 - INFO - Trading Mode: SIMULATION
+2025-08-25 12:58:59,943 - INFO - ============================================================
+2025-08-25 12:58:59,944 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 12:58:59,944 - INFO - ============================================================
+2025-08-25 12:58:59,945 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-25 12:58:59,945 - INFO - Initializing Risk Manager...
+2025-08-25 12:59:00,175 - INFO - Successfully authenticated with Robinhood
+2025-08-25 12:59:01,275 - INFO - Loaded 2 long option positions
+2025-08-25 12:59:01,275 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 12:59:01,276 - INFO - Trading Mode: SIMULATION
+2025-08-25 12:59:01,521 - INFO - ============================================================
+2025-08-25 12:59:01,521 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 12:59:01,521 - INFO - ============================================================
+2025-08-25 12:59:01,522 - INFO - Running in SIMULATION MODE (safe - no real orders)
+2025-08-25 12:59:01,522 - INFO - Initializing Risk Manager...
+2025-08-25 12:59:01,707 - INFO - Successfully authenticated with Robinhood
+2025-08-25 12:59:02,789 - INFO - Loaded 2 long option positions
+2025-08-25 12:59:02,789 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 12:59:02,789 - INFO - Trading Mode: SIMULATION
+2025-08-25 14:20:06,093 - INFO - ============================================================
+2025-08-25 14:20:06,094 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 14:20:06,094 - INFO - ============================================================
+2025-08-25 14:20:06,096 - WARNING - LIVE TRADING MODE ENABLED!
+2025-08-25 14:20:06,096 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-08-25 14:20:13,428 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-08-25 14:20:13,429 - INFO - Initializing Risk Manager...
+2025-08-25 14:20:13,763 - INFO - Successfully authenticated with Robinhood
+2025-08-25 14:20:14,844 - INFO - Loaded 2 long option positions
+2025-08-25 14:20:14,844 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 14:20:14,844 - INFO - Trading Mode: LIVE TRADING
+2025-08-25 14:20:15,190 - INFO - ============================================================
+2025-08-25 14:20:15,190 - INFO - RISK MANAGER SESSION STARTED
+2025-08-25 14:20:15,190 - INFO - ============================================================
+2025-08-25 14:20:15,192 - WARNING - LIVE TRADING MODE ENABLED!
+2025-08-25 14:20:15,192 - WARNING - THIS WILL PLACE REAL ORDERS WITH REAL MONEY!
+2025-08-25 14:20:27,514 - WARNING - LIVE TRADING MODE CONFIRMED BY USER
+2025-08-25 14:20:27,517 - INFO - Initializing Risk Manager...
+2025-08-25 14:20:27,753 - INFO - Successfully authenticated with Robinhood
+2025-08-25 14:20:28,818 - INFO - Loaded 2 long option positions
+2025-08-25 14:20:28,819 - INFO - Risk Manager Web Interface Started - Port: 5001
+2025-08-25 14:20:28,819 - INFO - Trading Mode: LIVE TRADING
