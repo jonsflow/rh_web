@@ -4,7 +4,7 @@ import pytest
 # Ensure repo root on path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import account_detector as ad_mod
+import shared.account_detector as ad_mod
 
 
 def _fake_accounts():
@@ -54,7 +54,7 @@ def test_has_positions_or_orders_with_prefix_and_number(monkeypatch):
     # Patch stock query used as fallback
     monkeypatch.setattr(ad_mod.r, "get_open_stock_positions", fake_get_open_stocks)
     # Patch PositionManager to report 1 option position for ...1234 without requiring deeper API
-    import position_manager as pm_mod
+    import shared.position_manager as pm_mod
     monkeypatch.setattr(
         pm_mod.position_manager,
         "load_positions_for_account",

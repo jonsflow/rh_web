@@ -6,9 +6,9 @@ import os, sys
 # Ensure repo root on path for module imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from position_types import LongPosition
-import position_manager as pm_mod
-from base_risk_manager import BaseRiskManager
+from shared.position_types import LongPosition
+import shared.position_manager as pm_mod
+from risk_manager.base_risk_manager import BaseRiskManager
 
 
 def _mock_market_price(monkeypatch, price: float):
