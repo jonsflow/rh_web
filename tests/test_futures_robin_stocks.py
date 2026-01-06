@@ -179,20 +179,89 @@ def test_filled_orders_only():
 
     try:
         print(f"\nFetching filled orders for account: {futures_account_id}\n")
-        orders = rh.get_filled_futures_orders(account_id=futures_account_id)
+        orders = rh.get_all_futures_orders(account_id=futures_account_id)
 
-        if orders:
-            print(f"✓ Retrieved {len(orders)} filled orders\n")
+        # Filter to FILLED only
+        filled_orders = [o for o in orders if o.get('orderState') == 'FILLED']
+
+        if filled_orders:
+            print(f"✓ Retrieved {len(filled_orders)} filled orders\n")
 
             # Calculate P&L
-            pnl_summary = rh.calculate_total_futures_pnl(orders)
+            pnl_summary = rh.calculate_total_futures_pnl(filled_orders)
             print(f"Total Realized P&L (Filled Only): ${pnl_summary['total_pnl']:,.2f}")
+
+            # Print ALL filled orders with all fields
+            print(f"\n\nALL {len(filled_orders)} FILLED Orders (Complete Details):")
+            print("=" * 120)
+
+            import json
+            for i, order in enumerate(filled_orders, 1):
+                print(f"\n--- Order #{i} ---")
+                print(json.dumps(order, indent=2))
+                print()
 
         else:
             print(f"\n✗ No filled orders found")
 
     except Exception as e:
         print(f"\n✗ Error: {e}")
+        import traceback
+        traceback.print_exc()
+
+    print(f"\n{'=' * 80}\n")
+
+
+def test_position_pairing_logic():
+    """Test FIFO execution-based pairing logic (correct approach)."""
+    print("=" * 80)
+    print("TEST 6: FIFO EXECUTION-BASED POSITION PAIRING")
+    print("=" * 80)
+
+    futures_account_id = '67648f71-bfff-4ca8-8189-d6f4aa95bcfa'
+
+    try:
+        from collections import defaultdict, deque
+        from datetime import datetime
+
+        print(f"\nFetching orders for account: {futures_account_id}\n")
+        orders = rh.get_all_futures_orders(account_id=futures_account_id)
+
+        # Filter to FILLED only
+        filled_orders = [o for o in orders if o.get('orderState') == 'FILLED']
+        print(f"✓ Retrieved {len(filled_orders)} filled orders\n")
+
+        # Just extract P&L from CLOSING orders - no pairing needed
+        closing_orders = [o for o in filled_orders if o.get('positionEffectAtPlacementTime') == 'CLOSING']
+
+        print(f"Found {len(closing_orders)} CLOSING orders out of {len(filled_orders)} total filled orders\n")
+
+        # Extract P&L from each closing order
+        total_pnl = 0
+        for order in closing_orders:
+            pnl_obj = order.get("realizedPnl", {})
+            if pnl_obj and isinstance(pnl_obj, dict):
+                inner_pnl = pnl_obj.get("realizedPnl", {})
+                if inner_pnl and isinstance(inner_pnl, dict):
+                    order_pnl = float(inner_pnl.get("amount", 0))
+                    total_pnl += order_pnl
+
+        print(f"Total P&L from CLOSING orders: ${total_pnl:,.2f}")
+
+        # Compare with robin_stocks calculation
+        pnl_summary = rh.calculate_total_futures_pnl(filled_orders)
+        print(f"Robin_stocks calculated P&L: ${pnl_summary['total_pnl']:,.2f}")
+        print(f"Difference: ${abs(total_pnl - pnl_summary['total_pnl']):,.2f}")
+
+        if abs(total_pnl - pnl_summary['total_pnl']) < 0.01:
+            print("✓ P&L matches perfectly!")
+        else:
+            print(f"⚠ P&L mismatch: ${abs(total_pnl - pnl_summary['total_pnl']):,.2f}")
+
+    except Exception as e:
+        print(f"\n✗ Error: {e}")
+        import traceback
+        traceback.print_exc()
 
     print(f"\n{'=' * 80}\n")
 
@@ -233,8 +302,7 @@ def main():
         test_futures_contracts()
         test_futures_quotes()
         test_multiple_quotes()
-        test_futures_orders()
-        test_filled_orders_only()
+        test_position_pairing_logic()
     except KeyboardInterrupt:
         print("\n\nTests interrupted by user")
     except Exception as e:
