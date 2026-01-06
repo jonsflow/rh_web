@@ -8,8 +8,8 @@ import robin_stocks.robinhood as r
 import datetime
 import time
 from typing import Dict, List, Optional
-from position_types import LongPosition
-from position_manager import position_manager
+from shared.position_types import LongPosition
+from shared.position_manager import position_manager
 
 class BaseRiskManager:
     def __init__(self, stop_loss_percent: float = 50.0, take_profit_percent: float = 50.0, account_number: Optional[str] = None):

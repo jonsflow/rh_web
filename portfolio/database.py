@@ -4,6 +4,8 @@ import datetime
 import pandas as pd
 from typing import Dict, List, Optional, Tuple
 import os
+from services.pnl_calculator import PnLCalculator
+from services.position_classifier import PositionClassifier
 
 class OptionsDatabase:
     def __init__(self, db_path: str = "options.db"):
@@ -67,6 +69,8 @@ class OptionsDatabase:
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_created_at ON option_orders(created_at)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_option_key ON positions(option_key)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_status ON positions(status)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_close_date ON positions(close_date)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_status_close_date ON positions(status, close_date)')
         
         conn.commit()
         conn.close()
@@ -144,166 +148,41 @@ class OptionsDatabase:
         return inserted_count
     
     def rebuild_positions(self):
-        """Rebuild the positions table from option_orders"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        """Rebuild the positions table from option_orders using the service layer"""
+        from services.option_service import OptionService
         
-        # Clear existing positions
-        cursor.execute('DELETE FROM positions')
+        # Use the service to handle all the complex position building logic
+        option_service = OptionService(self.db_path)
+        positions_processed = option_service.rebuild_all_positions()
         
-        # Get all orders grouped by option_ids
-        cursor.execute('''
-            SELECT option_ids, symbol, created_at, position_effect, expiration_date,
-                   strike_price, price, quantity, premium, strategy, direction, option_type
-            FROM option_orders
-            ORDER BY created_at
-        ''')
-        
-        orders = cursor.fetchall()
-        
-        # Group orders by option_ids to create positions
-        positions_dict = {}
-        
-        for order in orders:
-            option_ids, symbol, created_at, position_effect, expiration_date, strike_price, price, quantity, premium, strategy, direction, option_type = order
-            
-            option_key = f"{symbol}_{option_ids}_{expiration_date}_{strike_price}"
-            
-            if option_key not in positions_dict:
-                positions_dict[option_key] = {
-                    'option_key': option_key,
-                    'symbol': symbol,
-                    'expiration_date': expiration_date,
-                    'strike_price': strike_price,
-                    'strategy': strategy,
-                    'direction': direction,
-                    'option_type': option_type,
-                    'open_orders': [],
-                    'close_orders': [],
-                    'status': 'open'
-                }
-            
-            position = positions_dict[option_key]
-            
-            if position_effect == 'open':
-                position['open_orders'].append({
-                    'date': created_at,
-                    'price': price,
-                    'quantity': quantity or 0,
-                    'premium': premium
-                })
-            elif position_effect == 'close':
-                position['close_orders'].append({
-                    'date': created_at,
-                    'price': price,
-                    'quantity': quantity or 0,
-                    'premium': premium
-                })
-        
-        # Now calculate aggregated values for each position
-        for position in positions_dict.values():
-            # Initialize all fields first
-            position['open_date'] = None
-            position['close_date'] = None
-            position['quantity'] = 0
-            position['open_price'] = None
-            position['close_price'] = None
-            position['open_premium'] = None
-            position['close_premium'] = None
-            position['net_credit'] = None
-            
-            # Calculate open position aggregates
-            if position['open_orders']:
-                total_open_quantity = sum(order['quantity'] for order in position['open_orders'])
-                total_open_premium = sum(order['premium'] or 0 for order in position['open_orders'])
-                
-                # Calculate weighted average price
-                weighted_price_sum = sum((order['price'] or 0) * order['quantity'] for order in position['open_orders'])
-                position['open_price'] = weighted_price_sum / total_open_quantity if total_open_quantity > 0 else None
-                position['open_premium'] = total_open_premium
-                position['open_date'] = position['open_orders'][0]['date']  # First open date
-                position['quantity'] = total_open_quantity
-            
-            # Calculate close position aggregates
-            if position['close_orders']:
-                total_close_quantity = sum(order['quantity'] for order in position['close_orders'])
-                total_close_premium = sum(order['premium'] or 0 for order in position['close_orders'])
-                
-                # Calculate weighted average price
-                weighted_price_sum = sum((order['price'] or 0) * order['quantity'] for order in position['close_orders'])
-                position['close_price'] = weighted_price_sum / total_close_quantity if total_close_quantity > 0 else None
-                position['close_premium'] = total_close_premium
-                position['close_date'] = position['close_orders'][-1]['date']  # Last close date
-                # Don't subtract close quantity - keep the original open quantity for display
-                # position['quantity'] -= total_close_quantity
-            
-            # Clean up temporary arrays
-            del position['open_orders']
-            del position['close_orders']
-        
-        # Calculate net credit and determine status
-        for position in positions_dict.values():
-            if position['open_premium'] is not None and position['close_premium'] is not None:
-                # Calculate P&L based on debit/credit strategy
-                if position['open_price'] is not None and position['close_price'] is not None and position['quantity'] is not None and position['quantity'] > 0:
-                    price_diff = position['close_price'] - position['open_price']
-                    print(f"Debug: {position['symbol']} - direction: '{position['direction']}', quantity: {position['quantity']}, price_diff: {price_diff}")
-                    
-                    if position['direction'] == 'debit':  # Buying options (long positions)
-                        position['net_credit'] = price_diff * position['quantity'] * 100
-                    elif position['direction'] == 'credit':  # Credit strategies (short positions)
-                        position['net_credit'] = -price_diff * position['quantity'] * 100
-                    else:
-                        # Fallback if direction is unexpected
-                        print(f"Warning: Unknown direction '{position['direction']}' for {position['symbol']}")
-                        position['net_credit'] = price_diff * position['quantity'] * 100  # Default to debit
-                else:
-                    # Fallback to premium calculation if prices are missing
-                    print(f"Debug: Missing data for {position['symbol']} - open_price: {position['open_price']}, close_price: {position['close_price']}, quantity: {position['quantity']}")
-                    position['net_credit'] = position['open_premium'] + position['close_premium']
-                position['status'] = 'closed'
-            elif position['open_premium'] is not None:
-                # Check if expired
-                if position['expiration_date']:
-                    try:
-                        exp_date = datetime.datetime.strptime(position['expiration_date'], '%Y-%m-%d')
-                        if exp_date < datetime.datetime.now():
-                            position['status'] = 'expired'
-                    except ValueError:
-                        pass
-            
-            # Insert position
-            cursor.execute('''
-                INSERT OR REPLACE INTO positions 
-                (option_key, symbol, open_date, close_date, expiration_date, strike_price,
-                 quantity, open_price, close_price, open_premium, close_premium, net_credit,
-                 strategy, direction, option_type, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                position['option_key'], position['symbol'], position['open_date'], 
-                position['close_date'], position['expiration_date'], position['strike_price'],
-                position['quantity'], position['open_price'], position['close_price'],
-                position['open_premium'], position['close_premium'], position['net_credit'],
-                position['strategy'], position['direction'], position['option_type'],
-                position['status']
-            ))
-        
-        conn.commit()
-        conn.close()
+        print(f"Rebuilt {positions_processed} positions using service layer")
+    
     
     def get_positions_by_status(self, status: str) -> List[Dict]:
         """Get positions filtered by status"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
-                   quantity, open_price, close_price, open_premium, close_premium, net_credit,
-                   strategy, direction, option_type, status
-            FROM positions
-            WHERE status = ?
-            ORDER BY open_date DESC
-        ''', (status,))
+        # For open positions, filter out orphaned closing orders (positions with no open_premium)
+        # This uses the same logic as PositionClassifier.has_orphaned_close_orders()
+        if status == 'open':
+            cursor.execute('''
+                SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                       quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                       strategy, direction, option_type, status
+                FROM positions
+                WHERE status = ? AND open_premium IS NOT NULL
+                ORDER BY open_date DESC
+            ''', (status,))
+        else:
+            cursor.execute('''
+                SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                       quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                       strategy, direction, option_type, status
+                FROM positions
+                WHERE status = ?
+                ORDER BY open_date DESC
+            ''', (status,))
         
         columns = ['option_key', 'symbol', 'open_date', 'close_date', 'expiration_date', 
                   'strike_price', 'quantity', 'open_price', 'close_price', 'open_premium', 
@@ -342,6 +221,90 @@ class OptionsDatabase:
                 order_dict['option'] = []
             del order_dict['option_ids']
             results.append(order_dict)
+        
+        conn.close()
+        return results
+    
+    def get_daily_pnl_summary(self, start_date: str = None, end_date: str = None) -> Dict:
+        """Get daily PnL summary with optional date filtering for calendar view"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # First, let's debug what we have in the database
+        debug_query = '''
+            SELECT status, COUNT(*), 
+                   COUNT(CASE WHEN close_date IS NOT NULL THEN 1 END) as with_close_date,
+                   COUNT(CASE WHEN net_credit IS NOT NULL THEN 1 END) as with_net_credit
+            FROM positions 
+            GROUP BY status
+        '''
+        cursor.execute(debug_query)
+        debug_results = cursor.fetchall()
+        print("Database debug info:")
+        for row in debug_results:
+            print(f"  Status: {row[0]}, Count: {row[1]}, With close_date: {row[2]}, With net_credit: {row[3]}")
+        
+        # Main query with better filtering
+        query = '''
+            SELECT DATE(close_date) as day, 
+                   SUM(CASE WHEN net_credit IS NOT NULL THEN net_credit ELSE 0 END) as daily_pnl,
+                   COUNT(*) as position_count,
+                   GROUP_CONCAT(symbol || ' (' || COALESCE(ROUND(net_credit, 2), 0) || ')') as position_details,
+                   MIN(close_date) as first_close_time,
+                   MAX(close_date) as last_close_time
+            FROM positions 
+            WHERE status = 'closed' AND close_date IS NOT NULL
+        '''
+        params = []
+        
+        if start_date:
+            query += ' AND DATE(close_date) >= ?'
+            params.append(start_date)
+        if end_date:
+            query += ' AND DATE(close_date) <= ?'
+            params.append(end_date)
+            
+        query += ' GROUP BY DATE(close_date) ORDER BY close_date DESC'
+        
+        print(f"Executing query with params: {params}")
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+        
+        daily_data = {}
+        for row in results:
+            day, pnl, count, details, first_time, last_time = row
+            print(f"Date: {day}, PnL: {pnl}, Count: {count}, First: {first_time}, Last: {last_time}")
+            daily_data[day] = {
+                'pnl': round(float(pnl), 2) if pnl else 0,
+                'count': count,
+                'details': details if details else ''
+            }
+        
+        print(f"Returning {len(daily_data)} days of data")
+        conn.close()
+        return daily_data
+    
+    def get_positions_by_date(self, target_date: str) -> List[Dict]:
+        """Get all closed positions for a specific date"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT option_key, symbol, open_date, close_date, expiration_date, strike_price,
+                   quantity, open_price, close_price, open_premium, close_premium, net_credit,
+                   strategy, direction, option_type, status
+            FROM positions
+            WHERE status = 'closed' AND DATE(close_date) = ?
+            ORDER BY close_date DESC
+        ''', (target_date,))
+        
+        columns = ['option_key', 'symbol', 'open_date', 'close_date', 'expiration_date', 
+                  'strike_price', 'quantity', 'open_price', 'close_price', 'open_premium', 
+                  'close_premium', 'net_credit', 'strategy', 'direction', 'option_type', 'status']
+        
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
         
         conn.close()
         return results

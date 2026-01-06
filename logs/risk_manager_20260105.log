@@ -1,0 +1,23 @@
+2026-01-05 19:24:39,466 - INFO - ============================================================
+2026-01-05 19:24:39,467 - INFO - RISK MANAGER SESSION STARTED
+2026-01-05 19:24:39,467 - INFO - ============================================================
+2026-01-05 19:28:26,316 - INFO - ============================================================
+2026-01-05 19:28:26,316 - INFO - RISK MANAGER SESSION STARTED
+2026-01-05 19:28:26,316 - INFO - ============================================================
+2026-01-05 19:28:26,319 - INFO - Running in READ-ONLY MODE (order submission disabled)
+2026-01-05 19:28:26,319 - INFO - Initializing Multi-Account Risk Manager System...
+2026-01-05 19:28:26,319 - INFO - Authenticating with Robinhood...
+2026-01-05 19:28:26,489 - INFO - Successfully authenticated with Robinhood
+2026-01-05 19:28:26,705 - INFO - Detected 2 account(s)
+2026-01-05 19:28:27,516 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2026-01-05 19:28:27,516 - INFO - Trading Mode: READ-ONLY
+2026-01-05 19:28:27,773 - INFO - ============================================================
+2026-01-05 19:28:27,774 - INFO - RISK MANAGER SESSION STARTED
+2026-01-05 19:28:27,774 - INFO - ============================================================
+2026-01-05 19:28:27,777 - INFO - Running in READ-ONLY MODE (order submission disabled)
+2026-01-05 19:28:27,777 - INFO - Initializing Multi-Account Risk Manager System...
+2026-01-05 19:28:27,777 - INFO - Authenticating with Robinhood...
+2026-01-05 19:28:27,936 - INFO - Successfully authenticated with Robinhood
+2026-01-05 19:28:28,031 - INFO - Detected 2 account(s)
+2026-01-05 19:28:28,725 - INFO - Multi-Account Risk Manager Web Interface Started - Port: 5001
+2026-01-05 19:28:28,725 - INFO - Trading Mode: READ-ONLY

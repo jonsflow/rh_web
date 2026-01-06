@@ -7,7 +7,7 @@ Handles detection and management of multiple Robinhood accounts (Regular, Roth I
 import robin_stocks.robinhood as r
 from typing import Dict, List, Optional
 import logging
-from position_manager import position_manager
+from shared.position_manager import position_manager
 
 class AccountDetector:
     """Detects and manages information about available Robinhood accounts"""

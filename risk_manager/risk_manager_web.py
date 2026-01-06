@@ -14,14 +14,14 @@ import sys
 import logging
 import os
 import robin_stocks.robinhood as r
-from base_risk_manager import BaseRiskManager
-from risk_manager_logger import RiskManagerLogger
-from account_detector import AccountDetector
-from multi_account_manager import MultiAccountRiskManager
+from risk_manager.base_risk_manager import BaseRiskManager
+from risk_manager.risk_manager_logger import RiskManagerLogger
+from shared.account_detector import AccountDetector
+from risk_manager.multi_account_manager import MultiAccountRiskManager
 from shared.order_service import OrderService
-from position_manager import position_manager
+from shared.position_manager import position_manager
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 # Initialize logger
 rm_logger = RiskManagerLogger()
