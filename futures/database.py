@@ -70,6 +70,7 @@ class FuturesDatabase:
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_order_id ON futures_orders(order_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_symbol ON futures_orders(symbol)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_created_at ON futures_orders(created_at)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_trade_date ON futures_orders(trade_date)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_order_state ON futures_orders(order_state)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_position_key ON futures_positions(position_key)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_status ON futures_positions(status)')
@@ -324,6 +325,72 @@ class FuturesDatabase:
         cursor = conn.cursor()
 
         cursor.execute('SELECT * FROM futures_positions WHERE status = ? ORDER BY open_date DESC', (status,))
+        rows = cursor.fetchall()
+        columns = [description[0] for description in cursor.description]
+
+        conn.close()
+
+        return [dict(zip(columns, row)) for row in rows]
+
+    def get_daily_pnl(self, start_date: str = None, end_date: str = None) -> Dict[str, Dict]:
+        """
+        Get daily P&L summary grouped by trade_date.
+        Simply sums realized_pnl from all orders for each date.
+        This matches Robinhood's Purchase and Sale Summary report.
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        query = '''
+            SELECT
+                trade_date,
+                SUM(realized_pnl) as total_pnl,
+                SUM(realized_pnl_without_fees) as total_pnl_no_fees,
+                SUM(total_fee) as total_fees,
+                COUNT(*) as order_count
+            FROM futures_orders
+            WHERE order_state = 'FILLED' AND trade_date IS NOT NULL
+        '''
+        params = []
+
+        if start_date:
+            query += ' AND trade_date >= ?'
+            params.append(start_date)
+        if end_date:
+            query += ' AND trade_date <= ?'
+            params.append(end_date)
+
+        query += ' GROUP BY trade_date ORDER BY trade_date DESC'
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+
+        conn.close()
+
+        # Return as dictionary keyed by date
+        result = {}
+        for row in rows:
+            trade_date, total_pnl, total_pnl_no_fees, total_fees, order_count = row
+            result[trade_date] = {
+                'pnl': round(total_pnl, 2) if total_pnl else 0,
+                'pnl_no_fees': round(total_pnl_no_fees, 2) if total_pnl_no_fees else 0,
+                'fees': round(total_fees, 2) if total_fees else 0,
+                'count': order_count
+            }
+
+        return result
+
+    def get_orders_by_trade_date(self, trade_date: str) -> List[Dict]:
+        """Get all orders for a specific trade date"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT * FROM futures_orders
+            WHERE trade_date = ? AND order_state = 'FILLED'
+            ORDER BY execution_time
+        ''', (trade_date,))
+
         rows = cursor.fetchall()
         columns = [description[0] for description in cursor.description]
 

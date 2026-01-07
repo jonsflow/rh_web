@@ -70,7 +70,7 @@ class CalendarManager {
             const dayDate = new Date(date);
             // Only include days that are in the target month/year
             if (dayDate.getMonth() === targetMonth && dayDate.getFullYear() === targetYear) {
-                monthlyTotal += dayData.pnl || 0;
+                monthlyTotal += dayData.pnl_no_fees || 0;
                 tradeDays++;
             }
         }
@@ -103,9 +103,9 @@ class CalendarManager {
             const events = [];
             
             for (const [date, dayData] of Object.entries(this.dailyPnlData)) {
-                const pnl = dayData.pnl;
+                const pnl = dayData.pnl_no_fees || 0;
                 const count = dayData.count;
-                
+
                 events.push({
                     id: date,
                     title: `$${pnl.toFixed(2)}`,

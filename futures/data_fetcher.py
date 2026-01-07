@@ -147,25 +147,28 @@ class FuturesDataFetcher:
             open_positions = self.db.get_positions_by_status('open')
             closed_positions = self.db.get_positions_by_status('closed')
 
-            # Calculate summary using robin_stocks helpers
-            # Convert db orders to the format expected by calculate_total_futures_pnl
-            # ONLY use FILLED orders for P&L calculation
-            raw_orders = []
-            for order in all_orders:
-                try:
-                    raw_data = json.loads(order.get('raw_data', '{}'))
-                    # Only include FILLED orders
-                    if raw_data and raw_data.get('orderState') == 'FILLED':
-                        raw_orders.append(raw_data)
-                except Exception as e:
-                    print(f"Warning: Failed to parse raw_data for order {order.get('order_id')}: {e}")
+            # Calculate P&L summary using our simplified database method
+            # This sums realized_pnl directly from the database
+            daily_pnl = self.db.get_daily_pnl()
 
-            print(f"Loaded {len(raw_orders)} FILLED orders from database for P&L calculation")
+            # Calculate totals
+            total_pnl = sum(day['pnl'] for day in daily_pnl.values())
+            total_fees = sum(day['fees'] for day in daily_pnl.values())
+            total_pnl_no_fees = sum(day['pnl_no_fees'] for day in daily_pnl.values())
+            num_trading_days = len(daily_pnl)
 
-            # Use robin_stocks helper to calculate total P&L (FILLED orders only)
-            pnl_summary = r.calculate_total_futures_pnl(raw_orders)
+            # Get filled orders count
+            filled_orders = [o for o in all_orders if o.get('order_state') == 'FILLED']
 
-            print(f"P&L Summary: Total=${pnl_summary.get('total_pnl', 0):.2f}, Orders={pnl_summary.get('num_orders', 0)}")
+            pnl_summary = {
+                'total_pnl': round(total_pnl, 2),
+                'total_pnl_without_fees': round(total_pnl_no_fees, 2),
+                'total_fees': round(total_fees, 2),
+                'num_orders': len(filled_orders),
+                'num_trading_days': num_trading_days
+            }
+
+            print(f"P&L Summary: Total=${pnl_summary['total_pnl']:.2f}, Orders={pnl_summary['num_orders']}, Days={num_trading_days}")
 
             return {
                 'open_positions': open_positions,
@@ -176,6 +179,7 @@ class FuturesDataFetcher:
 
         except Exception as e:
             print(f"Error getting processed data: {str(e)}")
+            print(traceback.format_exc())
             return {
                 'error': True,
                 'message': 'Failed to retrieve processed data from database',
