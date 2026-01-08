@@ -93,7 +93,7 @@ function renderOpenPositions() {
         };
 
         row.innerHTML = `
-            <td>${position.contract_id || ''}</td>
+            <td>${position.display_symbol || position.contract_id}</td>
             <td>${formatDate(position.open_date)}</td>
             <td>${position.quantity || ''}</td>
             <td>$${position.open_price ? position.open_price.toFixed(2) : '0.00'}</td>
@@ -149,7 +149,7 @@ function renderClosedPositions() {
         };
 
         row.innerHTML = `
-            <td>${position.contract_id || ''}</td>
+            <td>${position.display_symbol || position.contract_id}</td>
             <td>${formatDate(position.open_date)}</td>
             <td>${formatDate(position.close_date)}</td>
             <td>${position.quantity || ''}</td>
@@ -206,7 +206,7 @@ function renderAllOrders() {
         };
 
         row.innerHTML = `
-            <td>${order.contract_id || ''}</td>
+            <td>${order.display_symbol || order.contract_id}</td>
             <td>${formatDate(order.created_at)}</td>
             <td>${order.position_effect || ''}</td>
             <td>${order.order_side || ''}</td>
