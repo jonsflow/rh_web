@@ -169,8 +169,15 @@ def get_positions_by_date(date):
 
 
 if __name__ == '__main__':
-    # Start server without auto-fetching data
+    # Start server and check if database needs initial setup
     print("Starting Robinhood Futures Dashboard...")
-    print("Data will be loaded from database. Click 'Refresh Data' to fetch new orders from Robinhood.")
+
+    import os
+    if not os.path.exists('futures.db'):
+        print("No database found - will need to fetch data on first load.")
+        print("Click 'Refresh Data' to populate the database.")
+    else:
+        print("Loading existing data from database.")
+        print("Click 'Refresh Data' to fetch new orders from Robinhood.")
 
     app.run(debug=True, host='0.0.0.0', port=3001)
