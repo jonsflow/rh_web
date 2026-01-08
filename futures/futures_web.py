@@ -169,23 +169,8 @@ def get_positions_by_date(date):
 
 
 if __name__ == '__main__':
-    # Trigger authentication on startup
+    # Start server without auto-fetching data
     print("Starting Robinhood Futures Dashboard...")
-    try:
-        # This will prompt for credentials if needed
-        data_fetcher.login_robinhood()
-        print("Authentication successful!")
-
-        # Fetch initial data after authentication
-        print("Fetching initial futures data...")
-        result = data_fetcher.fetch_futures_orders()
-        if result['success']:
-            print(f"✓ {result['message']}")
-        else:
-            print(f"⚠ Data fetch warning: {result['error']}")
-
-    except Exception as e:
-        print(f"Authentication failed: {e}")
-        print("You can try again when the server starts by refreshing the page.")
+    print("Data will be loaded from database. Click 'Refresh Data' to fetch new orders from Robinhood.")
 
     app.run(debug=True, host='0.0.0.0', port=3001)
