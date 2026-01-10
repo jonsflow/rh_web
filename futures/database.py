@@ -348,7 +348,7 @@ class FuturesDatabase:
                     execution_time,
                     trade_date
                 FROM futures_orders
-                WHERE order_state = 'FILLED'
+                WHERE order_state IN ('FILLED', 'PARTIALLY_FILLED_REST_CANCELLED')
                 AND realized_pnl_without_fees != 0
                 ORDER BY COALESCE(execution_time, created_at) DESC
             ''')
@@ -380,7 +380,7 @@ class FuturesDatabase:
                 SUM(total_fee) as total_fees,
                 COUNT(*) as order_count
             FROM futures_orders
-            WHERE order_state = 'FILLED' AND trade_date IS NOT NULL
+            WHERE order_state IN ('FILLED', 'PARTIALLY_FILLED_REST_CANCELLED') AND trade_date IS NOT NULL
         '''
         params = []
 
@@ -418,7 +418,7 @@ class FuturesDatabase:
 
         cursor.execute('''
             SELECT * FROM futures_orders
-            WHERE trade_date = ? AND order_state = 'FILLED'
+            WHERE trade_date = ? AND order_state IN ('FILLED', 'PARTIALLY_FILLED_REST_CANCELLED')
             ORDER BY execution_time
         ''', (trade_date,))
 
@@ -428,3 +428,60 @@ class FuturesDatabase:
         conn.close()
 
         return [dict(zip(columns, row)) for row in rows]
+
+    def get_daily_summary(self, trade_date: str) -> Dict:
+        """
+        Get daily trading summary matching Robinhood's Purchase and Sale Summary format.
+        Returns total qty long, total qty short, and gross P&L by contract.
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Get summary by contract for the specific date
+        cursor.execute('''
+            SELECT
+                contract_id,
+                symbol,
+                display_symbol,
+                SUM(CASE WHEN order_side = 'BUY' THEN filled_quantity ELSE 0 END) as total_qty_long,
+                SUM(CASE WHEN order_side = 'SELL' THEN filled_quantity ELSE 0 END) as total_qty_short,
+                SUM(realized_pnl) as gross_pnl,
+                COUNT(*) as order_count
+            FROM futures_orders
+            WHERE trade_date = ?
+            AND order_state IN ('FILLED', 'PARTIALLY_FILLED_REST_CANCELLED')
+            GROUP BY contract_id
+            ORDER BY symbol
+        ''', (trade_date,))
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        contracts = []
+        grand_total_long = 0
+        grand_total_short = 0
+        grand_total_pnl = 0
+
+        for row in rows:
+            contract_id, symbol, display_symbol, qty_long, qty_short, pnl, count = row
+            contracts.append({
+                'contract_id': contract_id,
+                'symbol': display_symbol or symbol,
+                'total_qty_long': int(qty_long or 0),
+                'total_qty_short': int(qty_short or 0),
+                'gross_pnl': round(pnl, 2) if pnl else 0,
+                'order_count': count
+            })
+            grand_total_long += int(qty_long or 0)
+            grand_total_short += int(qty_short or 0)
+            grand_total_pnl += (pnl or 0)
+
+        return {
+            'date': trade_date,
+            'contracts': contracts,
+            'totals': {
+                'total_qty_long': grand_total_long,
+                'total_qty_short': grand_total_short,
+                'gross_pnl': round(grand_total_pnl, 2)
+            }
+        }
