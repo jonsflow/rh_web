@@ -320,11 +320,42 @@ class FuturesDatabase:
         return [dict(zip(columns, row)) for row in rows]
 
     def get_positions_by_status(self, status: str) -> List[Dict]:
-        """Get positions filtered by status (open/closed)"""
+        """
+        Get positions filtered by status.
+        For 'closed' status, returns closing orders (where realized_pnl_without_fees != 0).
+        For other statuses, uses the futures_positions table.
+        """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM futures_positions WHERE status = ? ORDER BY open_date DESC', (status,))
+        if status == 'closed':
+            # For closed positions, return orders where realized_pnl_without_fees != 0
+            # These are the closing orders that have actual P&L
+            cursor.execute('''
+                SELECT
+                    order_id,
+                    contract_id,
+                    symbol,
+                    display_symbol,
+                    order_side,
+                    position_effect,
+                    filled_quantity as quantity,
+                    average_price as close_price,
+                    realized_pnl,
+                    realized_pnl_without_fees,
+                    total_fee,
+                    created_at as close_date,
+                    execution_time,
+                    trade_date
+                FROM futures_orders
+                WHERE order_state = 'FILLED'
+                AND realized_pnl_without_fees != 0
+                ORDER BY COALESCE(execution_time, created_at) DESC
+            ''')
+        else:
+            # For other statuses, use the positions table
+            cursor.execute('SELECT * FROM futures_positions WHERE status = ? ORDER BY open_date DESC', (status,))
+
         rows = cursor.fetchall()
         columns = [description[0] for description in cursor.description]
 

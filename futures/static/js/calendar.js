@@ -195,7 +195,7 @@ class CalendarManager {
                 <table class="position-details-table">
                     <thead>
                         <tr>
-                            <th>Contract ID</th>
+                            <th>Symbol</th>
                             <th>Time</th>
                             <th>Side</th>
                             <th>Quantity</th>
@@ -213,7 +213,7 @@ class CalendarManager {
 
                 html += `
                     <tr>
-                        <td>${order.contract_id || ''}</td>
+                        <td>${order.symbol || order.contract_id}</td>
                         <td>${formatDate(order.execution_time)}</td>
                         <td>${order.order_side || ''}</td>
                         <td>${order.filled_quantity || order.quantity || ''}</td>
