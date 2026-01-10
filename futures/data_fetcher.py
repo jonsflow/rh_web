@@ -169,8 +169,13 @@ class FuturesDataFetcher:
             print(f"Found {len(all_orders)} total futures orders from API")
 
             # Filter for filled orders to store in database
-            filled_orders = [order for order in all_orders if order.get('orderState') == 'FILLED']
-            print(f"Found {len(filled_orders)} filled orders")
+            # Include both FILLED and PARTIALLY_FILLED_REST_CANCELLED (partial fills are real executions)
+            filled_orders = [
+                order for order in all_orders
+                if order.get('orderState') in ['FILLED', 'PARTIALLY_FILLED_REST_CANCELLED']
+                and int(order.get('filledQuantity', 0)) > 0
+            ]
+            print(f"Found {len(filled_orders)} filled orders (including partial fills)")
 
             # Get last order date from database to see if we have new orders
             last_order_date = self.db.get_last_order_date()

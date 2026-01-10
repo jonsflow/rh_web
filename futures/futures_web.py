@@ -167,6 +167,25 @@ def get_positions_by_date(date):
             'error': f'Failed to fetch orders for date {date}'
         }), 500
 
+@app.route('/api/daily-summary/<date>')
+def get_daily_summary(date):
+    """Get daily trading summary (Purchase and Sale Summary format)"""
+    try:
+        summary = data_fetcher.db.get_daily_summary(date)
+
+        return jsonify({
+            'success': True,
+            'summary': summary
+        })
+
+    except Exception as e:
+        print(f"Daily Summary API Error: {str(e)}")
+        print(traceback.format_exc())
+
+        return jsonify({
+            'error': f'Failed to fetch summary for date {date}'
+        }), 500
+
 
 if __name__ == '__main__':
     # Start server and check if database needs initial setup

@@ -162,10 +162,16 @@ class CalendarManager {
 
     async showPositionDetails(date, pnl, count) {
         try {
-            const response = await fetch(`/api/positions/date/${date}`);
-            const data = await response.json();
+            // Fetch both summary and detailed orders
+            const [summaryResponse, ordersResponse] = await Promise.all([
+                fetch(`/api/daily-summary/${date}`),
+                fetch(`/api/positions/date/${date}`)
+            ]);
 
-            if (!data.success) {
+            const summaryData = await summaryResponse.json();
+            const ordersData = await ordersResponse.json();
+
+            if (!summaryData.success || !ordersData.success) {
                 alert('Failed to load order details');
                 return;
             }
@@ -174,7 +180,7 @@ class CalendarManager {
             const title = document.getElementById('modalTitle');
             const body = document.getElementById('modalPositions');
 
-            title.textContent = `Orders for ${date} - $${pnl.toFixed(2)} (${count} orders)`;
+            title.textContent = `Trading Summary - ${date}`;
 
             // Format dates to be more readable (in Eastern time to match market hours)
             const formatDate = (dateStr) => {
@@ -190,8 +196,54 @@ class CalendarManager {
                 });
             };
 
-            // Build CLOSING orders details table
+            const summary = summaryData.summary;
+
+            // Build summary table (Purchase and Sale Summary format)
             let html = `
+                <h3>Purchase and Sale Summary</h3>
+                <table class="position-details-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Total Qty Long</th>
+                            <th>Total Qty Short</th>
+                            <th>Gross P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            summary.contracts.forEach(contract => {
+                const pnlClass = contract.gross_pnl >= 0 ? 'profit' : 'loss';
+                const pnlSign = contract.gross_pnl >= 0 ? '+' : '';
+
+                html += `
+                    <tr>
+                        <td>${contract.symbol}</td>
+                        <td>${contract.total_qty_long}</td>
+                        <td>${contract.total_qty_short}</td>
+                        <td class="${pnlClass}">${pnlSign}$${contract.gross_pnl.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            // Totals row
+            const totalPnlClass = summary.totals.gross_pnl >= 0 ? 'profit' : 'loss';
+            const totalPnlSign = summary.totals.gross_pnl >= 0 ? '+' : '';
+            html += `
+                    <tr style="font-weight: bold; border-top: 2px solid #666;">
+                        <td>TOTALS</td>
+                        <td>${summary.totals.total_qty_long}</td>
+                        <td>${summary.totals.total_qty_short}</td>
+                        <td class="${totalPnlClass}">${totalPnlSign}$${summary.totals.gross_pnl.toFixed(2)}</td>
+                    </tr>
+            `;
+
+            html += `
+                    </tbody>
+                </table>
+                <br>
+                <h3>Detailed Orders (${count} total)</h3>
                 <table class="position-details-table">
                     <thead>
                         <tr>
@@ -206,10 +258,10 @@ class CalendarManager {
                     <tbody>
             `;
 
-            data.orders.forEach(order => {
-                const pnl = order.realized_pnl || 0;
-                const pnlClass = pnl >= 0 ? 'profit' : 'loss';
-                const pnlSign = pnl >= 0 ? '+' : '';
+            ordersData.orders.forEach(order => {
+                const orderPnl = order.realized_pnl || 0;
+                const pnlClass = orderPnl >= 0 ? 'profit' : 'loss';
+                const pnlSign = orderPnl >= 0 ? '+' : '';
 
                 html += `
                     <tr>
@@ -218,7 +270,7 @@ class CalendarManager {
                         <td>${order.order_side || ''}</td>
                         <td>${order.filled_quantity || order.quantity || ''}</td>
                         <td>$${(order.average_price || 0).toFixed(2)}</td>
-                        <td class="${pnlClass}">${pnlSign}$${pnl.toFixed(2)}</td>
+                        <td class="${pnlClass}">${pnlSign}$${orderPnl.toFixed(2)}</td>
                     </tr>
                 `;
             });
