@@ -130,29 +130,12 @@ def get_daily_pnl():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
 
-        # Get all orders from database
-        all_orders = data_fetcher.db.get_all_orders()
+        # Use the simplified database method that sums realized_pnl by trade_date
+        daily_pnl = data_fetcher.db.get_daily_pnl(start_date, end_date)
 
-        # Group CLOSING orders by trade date and calculate daily P&L
-        # Only CLOSING orders have meaningful realized P&L
-        from collections import defaultdict
-        from datetime import datetime
-
-        daily_pnl = defaultdict(lambda: {'pnl': 0, 'fees': 0, 'count': 0})
-
-        for order in all_orders:
-            # Only count CLOSING orders for P&L
-            if order.get('position_effect') == 'CLOSING':
-                trade_date = order.get('trade_date', '')
-                if trade_date:
-                    daily_pnl[trade_date]['pnl'] += order.get('realized_pnl', 0) or 0
-                    daily_pnl[trade_date]['fees'] += order.get('total_fee', 0) or 0
-                    daily_pnl[trade_date]['count'] += 1
-
-        # Return as dictionary (object) format for calendar.js
         return jsonify({
             'success': True,
-            'daily_pnl': dict(daily_pnl)
+            'daily_pnl': daily_pnl
         })
 
     except Exception as e:
@@ -165,17 +148,10 @@ def get_daily_pnl():
 
 @app.route('/api/positions/date/<date>')
 def get_positions_by_date(date):
-    """Get detailed CLOSING orders for a specific trade date"""
+    """Get all orders for a specific trade date"""
     try:
-        # Get all orders from database
-        all_orders = data_fetcher.db.get_all_orders()
-
-        # Filter CLOSING orders by trade_date matching the requested date
-        orders_on_date = [
-            order for order in all_orders
-            if order.get('trade_date', '') == date
-            and order.get('position_effect') == 'CLOSING'
-        ]
+        # Use the database method to get orders by trade date
+        orders_on_date = data_fetcher.db.get_orders_by_trade_date(date)
 
         return jsonify({
             'success': True,
@@ -193,23 +169,15 @@ def get_positions_by_date(date):
 
 
 if __name__ == '__main__':
-    # Trigger authentication on startup
+    # Start server and check if database needs initial setup
     print("Starting Robinhood Futures Dashboard...")
-    try:
-        # This will prompt for credentials if needed
-        data_fetcher.login_robinhood()
-        print("Authentication successful!")
 
-        # Fetch initial data after authentication
-        print("Fetching initial futures data...")
-        result = data_fetcher.fetch_futures_orders()
-        if result['success']:
-            print(f"✓ {result['message']}")
-        else:
-            print(f"⚠ Data fetch warning: {result['error']}")
-
-    except Exception as e:
-        print(f"Authentication failed: {e}")
-        print("You can try again when the server starts by refreshing the page.")
+    import os
+    if not os.path.exists('futures.db'):
+        print("No database found - will need to fetch data on first load.")
+        print("Click 'Refresh Data' to populate the database.")
+    else:
+        print("Loading existing data from database.")
+        print("Click 'Refresh Data' to fetch new orders from Robinhood.")
 
     app.run(debug=True, host='0.0.0.0', port=3001)

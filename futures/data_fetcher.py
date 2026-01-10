@@ -82,6 +82,70 @@ class FuturesDataFetcher:
             print(f"Error getting futures account ID: {e}")
             return None
 
+    def enrich_contract_symbols(self) -> int:
+        """
+        Enrich contracts with symbols by querying the quotes API.
+        Only updates contracts that are missing symbol/display_symbol.
+        Returns count of enriched contracts.
+        """
+        import sqlite3
+        import time
+
+        # Get contracts missing symbols
+        conn = sqlite3.connect(self.db.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT DISTINCT contract_id
+            FROM futures_orders
+            WHERE contract_id IS NOT NULL
+            AND contract_id != ''
+            AND (symbol IS NULL OR symbol = '' OR display_symbol IS NULL OR display_symbol = '')
+        ''')
+
+        contracts_to_enrich = [row[0] for row in cursor.fetchall()]
+        conn.close()
+
+        if not contracts_to_enrich:
+            return 0
+
+        print(f"Found {len(contracts_to_enrich)} contracts needing symbol enrichment")
+
+        enriched_count = 0
+        for contract_id in contracts_to_enrich:
+            try:
+                # Query quotes API to get symbol
+                url = f"https://api.robinhood.com/marketdata/futures/quotes/v1/?ids={contract_id}"
+                response = r.helper.request_get(url)
+
+                if response.get('status') == 'SUCCESS' and response.get('data'):
+                    quote_data = response['data'][0].get('data', {})
+                    symbol = quote_data.get('symbol', '')  # e.g., /ESH26:XCME
+                    display_symbol = symbol.split(':')[0] if symbol else ''  # e.g., /ESH26
+
+                    if symbol and display_symbol:
+                        # Update database
+                        conn = sqlite3.connect(self.db.db_path)
+                        cursor = conn.cursor()
+                        cursor.execute('''
+                            UPDATE futures_orders
+                            SET symbol = ?, display_symbol = ?
+                            WHERE contract_id = ?
+                        ''', (symbol, display_symbol, contract_id))
+                        conn.commit()
+                        conn.close()
+
+                        print(f"  ✓ Enriched contract {contract_id[:20]}... with symbol {display_symbol}")
+                        enriched_count += 1
+
+                # Rate limit to be nice to API
+                time.sleep(0.3)
+
+            except Exception as e:
+                print(f"  ✗ Error enriching contract {contract_id[:20]}...: {str(e)}")
+                continue
+
+        return enriched_count
+
     def fetch_futures_orders(self, force_full_refresh: bool = False) -> Dict:
         """Fetch futures orders with incremental updates"""
         try:
@@ -119,6 +183,11 @@ class FuturesDataFetcher:
             inserted_count = self.db.insert_orders(filled_orders)
             print(f"Inserted {inserted_count} new orders (duplicates skipped)")
 
+            # Enrich contracts with symbols (for any contracts missing symbols)
+            enriched_count = self.enrich_contract_symbols()
+            if enriched_count > 0:
+                print(f"Enriched {enriched_count} contracts with symbols")
+
             # Rebuild positions table
             self.db.rebuild_positions()
             print("Rebuilt positions table")
@@ -127,6 +196,7 @@ class FuturesDataFetcher:
                 'success': True,
                 'orders_fetched': len(all_orders),
                 'orders_inserted': inserted_count,
+                'contracts_enriched': enriched_count,
                 'message': f"Successfully updated database with {inserted_count} new orders"
             }
 
@@ -147,25 +217,28 @@ class FuturesDataFetcher:
             open_positions = self.db.get_positions_by_status('open')
             closed_positions = self.db.get_positions_by_status('closed')
 
-            # Calculate summary using robin_stocks helpers
-            # Convert db orders to the format expected by calculate_total_futures_pnl
-            # ONLY use FILLED orders for P&L calculation
-            raw_orders = []
-            for order in all_orders:
-                try:
-                    raw_data = json.loads(order.get('raw_data', '{}'))
-                    # Only include FILLED orders
-                    if raw_data and raw_data.get('orderState') == 'FILLED':
-                        raw_orders.append(raw_data)
-                except Exception as e:
-                    print(f"Warning: Failed to parse raw_data for order {order.get('order_id')}: {e}")
+            # Calculate P&L summary using our simplified database method
+            # This sums realized_pnl directly from the database
+            daily_pnl = self.db.get_daily_pnl()
 
-            print(f"Loaded {len(raw_orders)} FILLED orders from database for P&L calculation")
+            # Calculate totals
+            total_pnl = sum(day['pnl'] for day in daily_pnl.values())
+            total_fees = sum(day['fees'] for day in daily_pnl.values())
+            total_pnl_no_fees = sum(day['pnl_no_fees'] for day in daily_pnl.values())
+            num_trading_days = len(daily_pnl)
 
-            # Use robin_stocks helper to calculate total P&L (FILLED orders only)
-            pnl_summary = r.calculate_total_futures_pnl(raw_orders)
+            # Get filled orders count
+            filled_orders = [o for o in all_orders if o.get('order_state') == 'FILLED']
 
-            print(f"P&L Summary: Total=${pnl_summary.get('total_pnl', 0):.2f}, Orders={pnl_summary.get('num_orders', 0)}")
+            pnl_summary = {
+                'total_pnl': round(total_pnl, 2),
+                'total_pnl_without_fees': round(total_pnl_no_fees, 2),
+                'total_fees': round(total_fees, 2),
+                'num_orders': len(filled_orders),
+                'num_trading_days': num_trading_days
+            }
+
+            print(f"P&L Summary: Total=${pnl_summary['total_pnl']:.2f}, Orders={pnl_summary['num_orders']}, Days={num_trading_days}")
 
             return {
                 'open_positions': open_positions,
@@ -176,6 +249,7 @@ class FuturesDataFetcher:
 
         except Exception as e:
             print(f"Error getting processed data: {str(e)}")
+            print(traceback.format_exc())
             return {
                 'error': True,
                 'message': 'Failed to retrieve processed data from database',

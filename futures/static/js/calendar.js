@@ -70,7 +70,7 @@ class CalendarManager {
             const dayDate = new Date(date);
             // Only include days that are in the target month/year
             if (dayDate.getMonth() === targetMonth && dayDate.getFullYear() === targetYear) {
-                monthlyTotal += dayData.pnl || 0;
+                monthlyTotal += dayData.pnl_no_fees || 0;
                 tradeDays++;
             }
         }
@@ -103,9 +103,9 @@ class CalendarManager {
             const events = [];
             
             for (const [date, dayData] of Object.entries(this.dailyPnlData)) {
-                const pnl = dayData.pnl;
+                const pnl = dayData.pnl_no_fees || 0;
                 const count = dayData.count;
-                
+
                 events.push({
                     id: date,
                     title: `$${pnl.toFixed(2)}`,
@@ -195,7 +195,7 @@ class CalendarManager {
                 <table class="position-details-table">
                     <thead>
                         <tr>
-                            <th>Contract ID</th>
+                            <th>Symbol</th>
                             <th>Time</th>
                             <th>Side</th>
                             <th>Quantity</th>
@@ -213,7 +213,7 @@ class CalendarManager {
 
                 html += `
                     <tr>
-                        <td>${order.contract_id || ''}</td>
+                        <td>${order.symbol || order.contract_id}</td>
                         <td>${formatDate(order.execution_time)}</td>
                         <td>${order.order_side || ''}</td>
                         <td>${order.filled_quantity || order.quantity || ''}</td>

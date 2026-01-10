@@ -1,4 +1,4 @@
-backup/
+temp/
 __pycache__/
 *.pyc
 *.db

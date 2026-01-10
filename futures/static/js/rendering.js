@@ -93,7 +93,7 @@ function renderOpenPositions() {
         };
 
         row.innerHTML = `
-            <td>${position.contract_id || ''}</td>
+            <td>${position.symbol || position.contract_id}</td>
             <td>${formatDate(position.open_date)}</td>
             <td>${position.quantity || ''}</td>
             <td>$${position.open_price ? position.open_price.toFixed(2) : '0.00'}</td>
@@ -130,8 +130,8 @@ function renderClosedPositions() {
     futuresData.closed_positions.forEach(position => {
         const row = document.createElement('tr');
 
-        // Determine if profit or loss based on realized_pnl
-        const realizedPnl = position.realized_pnl || 0;
+        // Use realized_pnl_without_fees to match calendar display
+        const realizedPnl = position.realized_pnl_without_fees || 0;
         const isProfitable = realizedPnl > 0;
         const pnlClass = isProfitable ? 'profit' : 'loss';
 
@@ -148,12 +148,14 @@ function renderClosedPositions() {
             });
         };
 
+        // Note: These are now closing orders directly, so we don't have open_date/open_price
+        // We'll show the trade_date and close info
         row.innerHTML = `
-            <td>${position.contract_id || ''}</td>
-            <td>${formatDate(position.open_date)}</td>
+            <td>${position.symbol || position.contract_id}</td>
+            <td>${position.trade_date || ''}</td>
             <td>${formatDate(position.close_date)}</td>
             <td>${position.quantity || ''}</td>
-            <td>$${position.open_price ? position.open_price.toFixed(2) : '0.00'}</td>
+            <td>-</td>
             <td>$${position.close_price ? position.close_price.toFixed(2) : '0.00'}</td>
             <td class="${pnlClass}">
                 ${isProfitable ? '+' : ''}$${realizedPnl.toFixed(2)}
@@ -162,10 +164,10 @@ function renderClosedPositions() {
 
         // Add data attributes for sorting
         row.dataset.contractId = position.contract_id || '';
-        row.dataset.openDate = position.open_date || '';
+        row.dataset.openDate = position.trade_date || '';
         row.dataset.closeDate = position.close_date || '';
         row.dataset.quantity = parseInt(position.quantity || 0);
-        row.dataset.openPrice = parseFloat(position.open_price || 0);
+        row.dataset.openPrice = 0;
         row.dataset.closePrice = parseFloat(position.close_price || 0);
         row.dataset.realizedPnl = parseFloat(realizedPnl);
 
@@ -206,7 +208,7 @@ function renderAllOrders() {
         };
 
         row.innerHTML = `
-            <td>${order.contract_id || ''}</td>
+            <td>${order.symbol || order.contract_id}</td>
             <td>${formatDate(order.created_at)}</td>
             <td>${order.position_effect || ''}</td>
             <td>${order.order_side || ''}</td>
