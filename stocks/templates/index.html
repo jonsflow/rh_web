@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robinhood Stocks Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Robinhood Stocks Dashboard</h1>
+        <button id="refreshBtn">Refresh Data</button>
+    </header>
+
+    <div class="container">
+        <div id="loadingIndicator" class="loading">Loading stocks data...</div>
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div id="dashboardContent" style="display: none;">
+            <!-- Date Range Filter -->
+            <div class="filters" style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" style="margin-right: 20px;">
+
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" style="margin-right: 20px;">
+
+                <button id="applyFilter">Apply Filter</button>
+                <button id="clearFilter">Clear Filter</button>
+            </div>
+
+            <div id="summary" class="summary">
+                <!-- Summary cards will be inserted here -->
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="openPositions">Open Positions</div>
+                <div class="tab" data-tab="closedPositions">Closed Positions</div>
+                <div class="tab" data-tab="bySymbol">By Symbol</div>
+                <div class="tab" data-tab="allOrders">All Orders</div>
+                <div class="tab" data-tab="calendar">Calendar</div>
+            </div>
+
+            <!-- Open Positions Tab -->
+            <div id="openPositions" class="tab-content active">
+                <!-- Open positions table will be inserted here -->
+            </div>
+
+            <!-- Closed Positions Tab -->
+            <div id="closedPositions" class="tab-content">
+                <!-- Closed positions table will be inserted here -->
+            </div>
+
+            <!-- By Symbol Tab -->
+            <div id="bySymbol" class="tab-content">
+                <!-- Symbol P&L table will be inserted here -->
+            </div>
+
+            <!-- All Orders Tab -->
+            <div id="allOrders" class="tab-content">
+                <!-- Orders table will be inserted here -->
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar" class="tab-content">
+                <div id="calendarView"></div>
+
+                <!-- Day Detail Modal -->
+                <div id="positionModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2 id="modalTitle"></h2>
+                        <div id="modalPositions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="/static/js/calendar.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
