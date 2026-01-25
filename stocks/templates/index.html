@@ -53,7 +53,26 @@
 
             <!-- By Symbol Tab -->
             <div id="bySymbol" class="tab-content">
-                <!-- Symbol P&L table will be inserted here -->
+                <h2>P&L by Symbol</h2>
+                <div class="sub-tabs">
+                    <div class="sub-tab active" data-subtab="table">Table</div>
+                    <div class="sub-tab" data-subtab="heatmap">Heat Map</div>
+                </div>
+                <div id="table" class="sub-tab-content active">
+                    <!-- Table will be inserted here -->
+                </div>
+                <div id="heatmap" class="sub-tab-content">
+                    <!-- Heatmap will be inserted here -->
+                </div>
+
+                <!-- Symbol Detail Modal -->
+                <div id="symbolModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="close" id="symbolModalClose">&times;</span>
+                        <h2 id="symbolModalTitle"></h2>
+                        <div id="symbolModalTrades"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- All Orders Tab -->
