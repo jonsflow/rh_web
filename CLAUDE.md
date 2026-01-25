@@ -199,6 +199,10 @@ python -c "from risk_manager.risk_manager_web import app; print('Risk Manager OK
 - No explicit session management or CSRF protection
 - Multi-account operations are isolated by account_number
 
+## Git Commits
+
+Do NOT include AI attribution (Co-Authored-By) in commit messages.
+
 ## Documentation
 
 See `docs/` for detailed architecture and API documentation:
