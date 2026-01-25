@@ -281,12 +281,16 @@ class CalendarManager {
 
             const summary = summaryData.summary;
 
+            // Calculate total shares traded from orders
+            const totalSharesTraded = ordersData.orders.reduce((sum, order) => sum + order.quantity, 0);
+
             // Summary header with stats
             let html = `
                 <div style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
                     <strong>Daily Summary:</strong>
                     ${summary.totals.positions_closed} position(s) closed,
-                    ${summary.totals.positions_opened} position(s) opened
+                    ${summary.totals.positions_opened} position(s) opened,
+                    ${totalSharesTraded} shares traded
                     <br>
                     <strong>Realized P&L:</strong>
                     <span class="${summary.totals.total_pnl >= 0 ? 'profit' : 'loss'}">
@@ -367,7 +371,7 @@ class CalendarManager {
             }
 
             html += `
-                <h3>Detailed Orders (${count} total)</h3>
+                <h3>Detailed Orders (${ordersData.orders.length} total)</h3>
                 <table class="position-details-table">
                     <thead>
                         <tr>
