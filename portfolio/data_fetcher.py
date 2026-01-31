@@ -99,27 +99,12 @@ class SmartDataFetcher:
         return default_start.strftime('%Y-%m-%d')
     
     def fetch_option_orders(self, start_date: str = None, force_full_refresh: bool = False) -> Dict:
-        """Fetch option orders with smart incremental updates"""
+        """Fetch all option orders from Robinhood"""
         try:
-            if not start_date:
-                if force_full_refresh:
-                    # For full refresh, use January 1st if configured, otherwise use days back
-                    config = self.config["data_fetching"]
-                    if config["use_start_of_year"]:
-                        current_year = datetime.datetime.now().year
-                        start_date = datetime.datetime(current_year, 1, 1).strftime('%Y-%m-%d')
-                    elif config["default_start_date"]:
-                        start_date = config["default_start_date"]
-                    else:
-                        days_back = config["full_refresh_days_back"]
-                        start_date = (datetime.datetime.now() - datetime.timedelta(days=days_back)).strftime('%Y-%m-%d')
-                else:
-                    start_date = self.get_start_date()
-            
-            print(f"Fetching orders from {start_date}")
-            
-            # Get option orders from Robinhood
-            all_orders = r.orders.get_all_option_orders(start_date=start_date)
+            print("Fetching all option orders from Robinhood...")
+
+            # Get all option orders (no start_date parameter to get all historical data)
+            all_orders = r.orders.get_all_option_orders()
             
             if not isinstance(all_orders, list):
                 raise ValueError(f"Expected list of orders, got {type(all_orders)}")
