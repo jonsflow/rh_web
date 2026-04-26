@@ -183,6 +183,46 @@
             </div>
         </div>
 
+        <!-- LLM Analysis Card -->
+        <div id="llmAnalysisCard" class="card mb-4 border-primary">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h5 class="card-title mb-0">
+                    🤖 Position Intelligence
+                    <span id="reportTimestamp" class="text-muted ms-2" style="font-size:0.8rem;font-weight:normal;"></span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Generate report section -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <button class="btn btn-outline-primary btn-sm" onclick="generatePositionReport()" id="generateReportBtn">
+                        📋 Generate Position Report
+                    </button>
+                    <span id="reportStatus" class="text-muted small"></span>
+                </div>
+
+                <!-- Generated report collapsible -->
+                <div id="reportCollapsible" style="display:none;" class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">Generated report — copy and share with Claude Code:</small>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyReport()">📋 Copy to Clipboard</button>
+                    </div>
+                    <pre id="reportContent" style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:12px;font-size:12px;max-height:320px;overflow-y:auto;white-space:pre-wrap;"></pre>
+                </div>
+
+                <hr>
+
+                <!-- Recommendations section -->
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <h6 class="mb-0">Claude Recommendations</h6>
+                    <span id="recommendationsTimestamp" class="text-muted small"></span>
+                    <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="loadRecommendations()">🔄 Reload</button>
+                </div>
+                <div id="recommendationsContent" class="text-muted small">
+                    <em>No recommendations file found. Generate a report, share it with Claude Code, and ask it to write <code>exports/recommendations_{{ account_prefix }}.yaml</code>.</em>
+                </div>
+            </div>
+        </div>
+
         <!-- Orders Table -->
         <div id="ordersSection" class="card mb-4" style="display: none;">
             <div class="card-header">
@@ -383,6 +423,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
     <script>
         let positionsData = [];
         let selectedPositions = [];
@@ -1174,6 +1215,163 @@ function executeCloseOrders() {
             ordersTableBody.innerHTML = html;
         }
 
+        // LLM Analysis functions
+        let generatedReport = '';
+
+        function generatePositionReport() {
+            const btn = document.getElementById('generateReportBtn');
+            const status = document.getElementById('reportStatus');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+            status.textContent = '';
+
+            fetch(`/api/account/${accountPrefix}/export-positions`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        generatedReport = data.report;
+                        document.getElementById('reportContent').textContent = data.report;
+                        document.getElementById('reportCollapsible').style.display = 'block';
+                        document.getElementById('reportTimestamp').textContent = `Generated: ${data.generated_at}`;
+                        status.textContent = `✅ Written to ${data.filepath}`;
+                    } else {
+                        status.textContent = `❌ ${data.error}`;
+                    }
+                })
+                .catch(err => {
+                    status.textContent = `❌ Error: ${err}`;
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = '📋 Generate Position Report';
+                });
+        }
+
+        function copyReport() {
+            if (!generatedReport) return;
+            navigator.clipboard.writeText(generatedReport)
+                .then(() => {
+                    const btn = event.target;
+                    btn.textContent = '✅ Copied!';
+                    setTimeout(() => { btn.textContent = '📋 Copy to Clipboard'; }, 2000);
+                })
+                .catch(() => {
+                    // Fallback for older browsers
+                    const ta = document.createElement('textarea');
+                    ta.value = generatedReport;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                });
+        }
+
+        function loadRecommendations() {
+            fetch(`/api/account/${accountPrefix}/recommendations`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !data.recommendations) return;
+                    const ts = document.getElementById('recommendationsTimestamp');
+                    ts.textContent = `Updated: ${data.file_modified_at}`;
+                    try {
+                        const parsed = jsyaml.load(data.recommendations);
+                        renderRecommendations(parsed);
+                    } catch (e) {
+                        document.getElementById('recommendationsContent').innerHTML =
+                            `<div class="alert alert-danger">YAML parse error: ${e.message}</div>` +
+                            `<pre style="font-size:11px;">${data.recommendations}</pre>`;
+                    }
+                })
+                .catch(err => console.error('Error loading recommendations:', err));
+        }
+
+        function renderRecommendations(data) {
+            const el = document.getElementById('recommendationsContent');
+            if (!data || !data.positions) {
+                el.innerHTML = '<em class="text-muted">Recommendations file found but could not parse positions.</em>';
+                return;
+            }
+
+            const actionColor = { HOLD: 'secondary', CLOSE: 'danger', REDUCE: 'warning' };
+            const actionIcon  = { HOLD: '⏸', CLOSE: '🔴', REDUCE: '⚠️' };
+
+            let html = '';
+
+            if (data.summary) {
+                html += `<div class="alert alert-info py-2 mb-3"><strong>Analysis:</strong> ${data.summary}</div>`;
+            }
+
+            html += '<div class="row g-2">';
+            (data.positions || []).forEach(pos => {
+                const color = actionColor[pos.action] || 'secondary';
+                const icon  = actionIcon[pos.action]  || '•';
+                const slPct = pos.stop_loss_pct  ?? '';
+                const tpPct = pos.take_profit_pct ?? '';
+                const sym   = pos.symbol;
+                const exp   = pos.expiration || '';
+
+                html += `
+                <div class="col-md-6">
+                    <div class="card border-${color} h-100">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <strong>${sym} ${pos.strike} ${pos.option_type} <small class="text-muted">${exp}</small></strong>
+                                <span class="badge bg-${color}">${icon} ${pos.action || '—'}</span>
+                            </div>
+                            ${pos.notes ? `<p class="text-muted small mb-2">${pos.notes}</p>` : ''}
+                            <div class="d-flex flex-wrap gap-1">
+                                ${slPct !== '' ? `<button class="btn btn-outline-danger btn-sm" onclick="applyStopLoss('${sym}', ${slPct})">🛑 Stop Loss ${slPct}%</button>` : ''}
+                                ${tpPct !== '' ? `<button class="btn btn-outline-success btn-sm" onclick="applyTakeProfit('${sym}', ${tpPct})">💰 Take Profit ${tpPct}%</button>` : ''}
+                                ${pos.action === 'CLOSE' ? `<button class="btn btn-outline-danger btn-sm" onclick="closePositionBySymbol('${sym}')">📤 Close Now</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            html += '</div>';
+            el.innerHTML = html;
+            el.style.color = '';
+        }
+
+        function applyStopLoss(symbol, percent) {
+            fetch(`/api/account/${accountPrefix}/trailing-stop`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ symbol, enabled: true, percent: parseFloat(percent) })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadPositions();
+                } else {
+                    alert('Stop loss error: ' + (data.error || 'unknown'));
+                }
+            });
+        }
+
+        function applyTakeProfit(symbol, percent) {
+            fetch(`/api/account/${accountPrefix}/take-profit`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ symbol, enabled: true, percent: parseFloat(percent) })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadPositions();
+                } else {
+                    alert('Take profit error: ' + (data.error || 'unknown'));
+                }
+            });
+        }
+
+        function closePositionBySymbol(symbol) {
+            const idx = positionsData.findIndex(p => p.symbol === symbol);
+            if (idx === -1) { alert(`Position ${symbol} not found in current data`); return; }
+            showCloseModal([idx]);
+        }
+
         // Auto-refresh every 10 seconds
         setInterval(() => {
             loadPositions();
@@ -1182,6 +1380,7 @@ function executeCloseOrders() {
         
         // Initial load
         loadPositions();
+        loadRecommendations();
     </script>
 </body>
 </html>
