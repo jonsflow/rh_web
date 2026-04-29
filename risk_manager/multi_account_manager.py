@@ -30,6 +30,7 @@ class AccountMonitoringThread:
         self.initial_loading_complete = False
         self.logger = logging.getLogger(f'account_monitor_{account_number[-4:]}')
         self._last_reconcile = 0.0
+        self._last_intelligence_refresh = 0.0
         
     def start_monitoring(self):
         """Start the monitoring thread"""
@@ -102,6 +103,22 @@ class AccountMonitoringThread:
                         self._last_reconcile = now_ts
                     except Exception as e:
                         self.logger.error(f"Reconcile error for account {self.account_number[-4:]}: {e}")
+
+                # Refresh symbol intelligence every 30 minutes
+                intelligence_interval = 1800
+                if now_ts - self._last_intelligence_refresh >= intelligence_interval:
+                    try:
+                        symbols = list({pos.symbol for pos in self.risk_manager.positions.values()})
+                        if symbols:
+                            underlying_prices = {
+                                pos.symbol: pos.underlying_price
+                                for pos in self.risk_manager.positions.values()
+                                if hasattr(pos, 'underlying_price') and pos.underlying_price
+                            }
+                            position_manager.refresh_symbol_intelligence(symbols, underlying_prices)
+                        self._last_intelligence_refresh = now_ts
+                    except Exception as e:
+                        self.logger.error(f"Intelligence refresh error: {e}")
 
                 if is_market_hours and is_weekday:
                     # High frequency updates during market hours only

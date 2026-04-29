@@ -1012,19 +1012,52 @@ Orphaned positions stored but filtered at query time:
 
 **Benefit**: Can debug orphaned data, filtering is explicit
 
+## Available API Data Not Yet Captured
+
+`get_option_market_data_by_id()` is already called on every position refresh (`position_manager.py:238`) but only `adjusted_mark_price` is extracted. The full response includes Greeks and analytics that are silently discarded:
+
+| Field | Type | Notes |
+|---|---|---|
+| `delta` | float | Directional exposure per contract |
+| `gamma` | float | Rate of delta change |
+| `theta` | float | Daily time decay (negative for longs) |
+| `vega` | float | Sensitivity to IV changes |
+| `rho` | float | Interest rate sensitivity |
+| `implied_volatility` | float | Current IV |
+| `chance_of_profit_long` | float | Robinhood's probability estimate (long view) |
+| `chance_of_profit_short` | float | Robinhood's probability estimate (short view) |
+| `bid_price` / `ask_price` | float | Real-time spread |
+| `open_interest` | int | Liquidity indicator |
+
+None of these are stored on `LongPosition` (`shared/position_types.py`) or surfaced in any UI.
+
+Additionally, `find_tradable_options()` can pull a full option chain with all of the above fields for any symbol without needing a position open — this is the foundation for chain-level analysis.
+
+### Greeks Risk Manager — Potential Framework
+
+The existing infrastructure is close to a self-contained options Greeks risk manager. What would be needed:
+
+- **Capture Greeks on refresh**: Extract delta/gamma/theta/vega/IV in `calculate_pnl()` and add fields to `LongPosition`
+- **Portfolio Greeks aggregation**: Sum delta and gamma across positions to get net portfolio exposure (portfolio delta, portfolio gamma)
+- **GEX (Gamma Exposure)**: `GEX = gamma × open_interest × 100 × underlying_price²` — requires pulling OI from the chain via `find_tradable_options()`, not just open positions
+- **IV surface**: Collect IV across strikes and expirations for a symbol to identify skew and term structure
+- **Greeks-based alerts**: Trigger warnings when portfolio delta exceeds a threshold, or theta decay per day exceeds a dollar amount
+
+The chain-level data (OI, GEX) requires `find_tradable_options()` calls per symbol — these are not tied to having an open position, so they could run as a background scanner.
+
 ## Future Enhancements
 
-### 1. Spread Strategy Support
+### 1. Capture Greeks on Position Refresh
+`calculate_pnl()` already has the market data response. Adding delta/gamma/theta/vega/IV to `LongPosition` requires:
+- New fields on the `LongPosition` dataclass
+- Extract the fields in `calculate_pnl()` alongside `adjusted_mark_price`
+- No new API calls needed
+
+### 2. Spread Strategy Support
 Currently skipped - requires:
 - ITM/OTM detection at expiration
 - Per-leg P&L calculation
 - Understanding of spread mechanics (max profit/loss)
-
-### 2. Unrealized P&L for Open Positions
-Requires:
-- Fetching current option prices
-- Calculating mark-to-market value
-- Real-time updates during market hours
 
 ### 3. Incremental Position Updates
 Instead of full rebuild:
@@ -1040,6 +1073,6 @@ Instead of full rebuild:
 
 ---
 
-**Last Updated**: 2026-01-31
-**Reviewed Code**: All service layer files, database.py, data_fetcher.py, models
+**Last Updated**: 2026-04-26
+**Reviewed Code**: All service layer files, database.py, data_fetcher.py, models, position_manager.py, position_types.py
 **Documentation Status**: ✅ Verified against actual implementation

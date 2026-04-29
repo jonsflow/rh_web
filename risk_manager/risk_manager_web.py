@@ -167,6 +167,8 @@ def _build_positions_response(risk_manager, account_number=None):
             'estimated_proceeds': proceeds
         }
         
+        intelligence = position_manager.get_symbol_intelligence(position.symbol)
+
         position_data = {
             'symbol': position.symbol,
             'strike_price': position.strike_price,
@@ -180,7 +182,19 @@ def _build_positions_response(risk_manager, account_number=None):
             'close_order': close_order,
             'status_color': 'success' if position.pnl > 0 else 'danger' if position.pnl < 0 else 'secondary',
             'trail_stop': trail_stop_data,
-            'take_profit': take_profit_data
+            'take_profit': take_profit_data,
+            # Greeks and market data
+            'delta': position.delta,
+            'gamma': position.gamma,
+            'theta': position.theta,
+            'vega': position.vega,
+            'implied_volatility': position.implied_volatility,
+            'bid_price': position.bid_price,
+            'ask_price': position.ask_price,
+            'underlying_price': position.underlying_price,
+            'dte': position.dte,
+            'moneyness': position.moneyness,
+            'intelligence': intelligence
         }
         
         positions_data.append(position_data)

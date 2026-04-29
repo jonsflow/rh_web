@@ -106,7 +106,31 @@
             background-color: #fff3e0;
             color: #ef6c00;
         }
-        
+
+        /* Greeks strip */
+        .greeks-strip {
+            font-size: 0.8rem;
+            color: #555;
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin-top: 6px;
+        }
+        .greeks-strip span { margin-right: 10px; }
+        .price-strip {
+            font-size: 0.8rem;
+            color: #444;
+            margin-top: 4px;
+        }
+        .price-strip span { margin-right: 8px; }
+        .intelligence-section { margin-top: 10px; border-top: 1px solid #eee; padding-top: 8px; }
+        .earnings-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 10px; }
+        .earnings-soon { background: #fff3cd; color: #856404; }
+        .earnings-later { background: #d1e7dd; color: #0f5132; }
+        .news-item { font-size: 0.75rem; margin-bottom: 2px; }
+        .news-source { color: #888; margin-left: 4px; }
+        .sector-tag { font-size: 0.72rem; background: #e9ecef; border-radius: 8px; padding: 1px 6px; }
+
         /* Take Profit Indicators */
         .take-profit-indicator {
             font-size: 0.8rem;
@@ -506,102 +530,177 @@
             }
         }
 
-        function renderPositions(positions) {
-            const container = document.getElementById('positionsContainer');
-            
-            if (positions.length === 0) {
-                container.innerHTML = `
-                    <div class="alert alert-info">
-                        <h5>No Positions</h5>
-                        <p>No long option positions found to monitor.</p>
-                    </div>
-                `;
-                return;
+        function timeAgo(isoStr) {
+            try {
+                const diff = Math.floor((Date.now() - new Date(isoStr)) / 60000);
+                if (diff < 60) return `${diff}m ago`;
+                if (diff < 1440) return `${Math.floor(diff/60)}h ago`;
+                return `${Math.floor(diff/1440)}d ago`;
+            } catch(e) { return ''; }
+        }
+
+        function renderUnderlyingOverview(symbol, intel, underlyingPrice) {
+            if (!intel) return '';
+            const collapseId = `overview-${symbol}`;
+            let body = '';
+
+            // Earnings
+            if (intel.next_earnings && intel.next_earnings.date) {
+                const earningsDate = new Date(intel.next_earnings.date);
+                const today = new Date(); today.setHours(0,0,0,0);
+                const daysToEarnings = Math.ceil((earningsDate - today) / 86400000);
+                const badgeClass = daysToEarnings <= 14 ? 'earnings-soon' : 'earnings-later';
+                const timing = intel.next_earnings.timing ? ` ${intel.next_earnings.timing}` : '';
+                body += `<div class="mb-2"><span class="earnings-badge ${badgeClass}">🗓 Next Earnings: ${intel.next_earnings.date}${timing} (${daysToEarnings}d)</span></div>`;
             }
 
-            let html = '';
-            
-            positions.forEach((pos, index) => {
-                const statusIcon = pos.pnl > 0 ? 'status-green' : pos.pnl < 0 ? 'status-red' : 'status-gray';
-                const pnlClass = pos.pnl > 0 ? 'pnl-positive' : pos.pnl < 0 ? 'pnl-negative' : 'pnl-neutral';
-                
-                // Trailing stop indicator
-                let trailStopIndicator = '';
-                if (pos.trail_stop.order_submitted) {
-                    trailStopIndicator = `<span class="trail-stop-indicator trail-stop-submitted">⚡ ORDER SUBMITTED</span>`;
-                } else if (pos.trail_stop.enabled) {
-                    const trailClass = pos.trail_stop.triggered ? 'trail-stop-triggered' : 'trail-stop-active';
-                    const trailText = pos.trail_stop.triggered ? '🔥 TRIGGERED!' : `📈 ${pos.trail_stop.percent}%`;
-                    trailStopIndicator = `<span class="trail-stop-indicator ${trailClass}">${trailText}</span>`;
+            // Expected move (ATM straddle)
+            if (intel.expected_move) {
+                const em = intel.expected_move;
+                const expShort = em.expiration.slice(5).replace('-', '/');
+                body += `<div class="mb-2">
+                    <span class="sector-tag" style="background:#e8f4f8;color:#0c5fa5;font-weight:600;">
+                        ± $${em.amount.toFixed(2)} (±${em.percent.toFixed(1)}%) by ${expShort} · ${em.dte}d straddle
+                    </span>
+                </div>`;
+            }
+
+            // Fundamentals tags
+            if (intel.fundamentals) {
+                const f = intel.fundamentals;
+                const tags = [];
+                if (f.sector)        tags.push(f.sector);
+                if (f.industry && f.industry !== f.sector) tags.push(f.industry);
+                if (f.market_cap)    tags.push(`Mkt Cap ${f.market_cap}`);
+                if (f.pe_ratio)      tags.push(`P/E ${parseFloat(f.pe_ratio).toFixed(1)}`);
+                if (f.pb_ratio)      tags.push(`P/B ${parseFloat(f.pb_ratio).toFixed(1)}`);
+                if (f.dividend_yield && f.dividend_yield !== '0.00%') tags.push(`Div ${f.dividend_yield}`);
+                if (f.high_52_weeks && f.low_52_weeks) tags.push(`52w $${parseFloat(f.low_52_weeks).toFixed(0)}–$${parseFloat(f.high_52_weeks).toFixed(0)}`);
+                if (f.average_volume) tags.push(`Avg Vol ${(parseFloat(f.average_volume)/1e6).toFixed(1)}M`);
+                if (f.num_employees)  tags.push(`${parseInt(f.num_employees).toLocaleString()} employees`);
+                if (f.ceo)            tags.push(`CEO: ${f.ceo}`);
+                if (f.year_founded)   tags.push(`Founded ${f.year_founded}`);
+                if (f.headquarters)   tags.push(f.headquarters);
+                if (tags.length > 0) {
+                    body += '<div class="d-flex flex-wrap gap-1 mb-2">';
+                    tags.forEach(t => { body += `<span class="sector-tag">${t}</span>`; });
+                    body += '</div>';
                 }
-                
-                // Take profit indicator  
-                let takeProfitIndicator = '';
-                if (pos.take_profit && pos.take_profit.enabled) {
-                    const takeProfitClass = pos.take_profit.triggered ? 'take-profit-triggered' : 'take-profit-active';
-                    const takeProfitText = pos.take_profit.triggered ? '💰 TRIGGERED!' : `${pos.take_profit.percent}%`;
-                    takeProfitIndicator = `<span class="take-profit-indicator ${takeProfitClass}">${takeProfitText}</span>`;
-                }
-                
-                html += `
-                    <div class="card position-card">
-                        <div class="card-header">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <h5 class="mb-0">
-                                        <span class="status-indicator ${statusIcon}"></span>
-                                        ${pos.symbol} ${pos.strike_price}${pos.option_type} ${pos.expiration_date}
-                                        ${trailStopIndicator}
-                                        ${takeProfitIndicator}
-                                    </h5>
-                                </div>
-                                <div class="col-auto">
-                                    <button class="btn btn-outline-info btn-sm me-2" ${pos.trail_stop.order_submitted ? 'disabled' : ''} onclick="showTrailStopModal('${pos.symbol}', ${index})">
-                                        Trail Stop
-                                    </button>
-                                    <button class="btn btn-outline-success btn-sm me-2" onclick="showTakeProfitModal('${pos.symbol}', ${index})">
-                                        💰 Take Profit
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm" ${pos.trail_stop.order_submitted ? 'disabled title="Order already submitted via trailing stop"' : ''} onclick="showCloseModal([${index}])">
-                                        📤 Close Position
-                                    </button>
-                                </div>
+            }
+
+            // News
+            if (intel.news && intel.news.length > 0) {
+                body += '<div>';
+                intel.news.forEach(n => {
+                    const age = n.published_at ? timeAgo(n.published_at) : '';
+                    const titleHtml = n.url
+                        ? `<a href="${n.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline dotted;">${n.title}</a>`
+                        : n.title;
+                    body += `<div class="news-item">📰 ${titleHtml}<span class="news-source">${n.source}${age ? ' · ' + age : ''}</span></div>`;
+                });
+                body += '</div>';
+            }
+
+            if (intel.last_fetched) {
+                body += `<div class="mt-1" style="font-size:0.7rem;color:#aaa;">Updated: ${intel.last_fetched}</div>`;
+            }
+
+            if (!body) return '';
+
+            const priceLabel = underlyingPrice ? ` — $${underlyingPrice.toFixed(2)}` : '';
+            return `
+                <div class="card mb-2 border-secondary">
+                    <div class="card-header py-1 px-3" style="cursor:pointer;background:#f8f9fa;"
+                         data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                        <small class="text-muted fw-bold">📊 ${symbol}${priceLabel} — Underlying Overview</small>
+                        <small class="text-muted float-end">▾</small>
+                    </div>
+                    <div class="collapse show" id="${collapseId}">
+                        <div class="card-body py-2 px-3">${body}</div>
+                    </div>
+                </div>`;
+        }
+
+        function renderPositionCard(pos, index) {
+            const statusIcon = pos.pnl > 0 ? 'status-green' : pos.pnl < 0 ? 'status-red' : 'status-gray';
+            const pnlClass = pos.pnl > 0 ? 'pnl-positive' : pos.pnl < 0 ? 'pnl-negative' : 'pnl-neutral';
+
+            let trailStopIndicator = '';
+            if (pos.trail_stop.order_submitted) {
+                trailStopIndicator = `<span class="trail-stop-indicator trail-stop-submitted">⚡ ORDER SUBMITTED</span>`;
+            } else if (pos.trail_stop.enabled) {
+                const trailClass = pos.trail_stop.triggered ? 'trail-stop-triggered' : 'trail-stop-active';
+                const trailText = pos.trail_stop.triggered ? '🔥 TRIGGERED!' : `📈 ${pos.trail_stop.percent}%`;
+                trailStopIndicator = `<span class="trail-stop-indicator ${trailClass}">${trailText}</span>`;
+            }
+
+            let takeProfitIndicator = '';
+            if (pos.take_profit && pos.take_profit.enabled) {
+                const takeProfitClass = pos.take_profit.triggered ? 'take-profit-triggered' : 'take-profit-active';
+                const takeProfitText = pos.take_profit.triggered ? '💰 TRIGGERED!' : `${pos.take_profit.percent}%`;
+                takeProfitIndicator = `<span class="take-profit-indicator ${takeProfitClass}">${takeProfitText}</span>`;
+            }
+
+            return `
+                <div class="card position-card">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h5 class="mb-0">
+                                    <span class="status-indicator ${statusIcon}"></span>
+                                    ${pos.symbol} ${pos.strike_price}${pos.option_type} ${pos.expiration_date}
+                                    ${trailStopIndicator}
+                                    ${takeProfitIndicator}
+                                </h5>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-outline-info btn-sm me-2" ${pos.trail_stop.order_submitted ? 'disabled' : ''} onclick="showTrailStopModal('${pos.symbol}', ${index})">
+                                    Trail Stop
+                                </button>
+                                <button class="btn btn-outline-success btn-sm me-2" onclick="showTakeProfitModal('${pos.symbol}', ${index})">
+                                    💰 Take Profit
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm" ${pos.trail_stop.order_submitted ? 'disabled title="Order already submitted via trailing stop"' : ''} onclick="showCloseModal([${index}])">
+                                    📤 Close Position
+                                </button>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <td>Quantity:</td>
-                                            <td><strong>${pos.quantity}</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Premium Paid:</td>
-                                            <td>$${pos.open_premium.toFixed(2)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Current Mark:</td>
-                                            <td>$${pos.current_price.toFixed(2)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>P&L:</td>
-                                            <td class="${pnlClass}"><strong>$${pos.pnl.toFixed(2)} (${pos.pnl_percent.toFixed(1)}%)</strong></td>
-                                        </tr>
-                                        ${pos.trail_stop.enabled ? `
-                                        <tr>
-                                            <td>Trail Stop:</td>
-                                            <td>
-                                                <small>High: $${pos.trail_stop.highest_price.toFixed(2)}<br>
-                                                Trigger: $${pos.trail_stop.trigger_price.toFixed(2)}</small>
-                                            </td>
-                                        </tr>
-                                        ` : ''}
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Close Order Preview:</h6>
-                                    <div class="order-code">robin_stocks.order_sell_option_limit(
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr><td>Quantity:</td><td><strong>${pos.quantity}</strong></td></tr>
+                                    <tr><td>Premium Paid:</td><td>$${pos.open_premium.toFixed(2)}</td></tr>
+                                    <tr><td>Current Mark:</td><td>$${pos.current_price.toFixed(2)}</td></tr>
+                                    <tr>
+                                        <td>P&L:</td>
+                                        <td class="${pnlClass}"><strong>$${pos.pnl.toFixed(2)} (${pos.pnl_percent.toFixed(1)}%)</strong></td>
+                                    </tr>
+                                    ${pos.trail_stop.enabled ? `
+                                    <tr>
+                                        <td>Trail Stop:</td>
+                                        <td><small>High: $${pos.trail_stop.highest_price.toFixed(2)}<br>Trigger: $${pos.trail_stop.trigger_price.toFixed(2)}</small></td>
+                                    </tr>` : ''}
+                                </table>
+                                ${(pos.delta || pos.gamma || pos.theta || pos.vega || pos.implied_volatility) ? `
+                                <div class="greeks-strip">
+                                    ${pos.delta ? `<span>Δ ${pos.delta.toFixed(3)}</span>` : ''}
+                                    ${pos.gamma ? `<span>Γ ${pos.gamma.toFixed(4)}</span>` : ''}
+                                    ${pos.theta ? `<span>Θ ${pos.theta.toFixed(3)}</span>` : ''}
+                                    ${pos.vega  ? `<span>V ${pos.vega.toFixed(3)}</span>`  : ''}
+                                    ${pos.implied_volatility ? `<span>IV ${pos.implied_volatility.toFixed(1)}%</span>` : ''}
+                                </div>` : ''}
+                                ${(pos.bid_price || pos.ask_price || pos.dte || pos.moneyness) ? `
+                                <div class="price-strip">
+                                    ${(pos.bid_price || pos.ask_price) ? `<span>Bid $${pos.bid_price.toFixed(2)} / Ask $${pos.ask_price.toFixed(2)}</span>` : ''}
+                                    ${pos.dte !== undefined ? `<span>DTE ${pos.dte}</span>` : ''}
+                                    ${pos.moneyness ? `<span>${pos.moneyness}</span>` : ''}
+                                </div>` : ''}
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Close Order Preview:</h6>
+                                <div class="order-code">robin_stocks.order_sell_option_limit(
     positionEffect='${pos.close_order.positionEffect}',
     creditOrDebit='${pos.close_order.creditOrDebit}',
     price=${pos.close_order.price},
@@ -612,16 +711,50 @@
     optionType='${pos.close_order.optionType}',
     timeInForce='${pos.close_order.timeInForce}'
 )</div>
-                                    <small class="text-muted mt-2 d-block">
-                                        Estimated proceeds: <strong>$${pos.close_order.estimated_proceeds.toFixed(2)}</strong>
-                                        ${pos.trail_stop.enabled ? `<br><span class="text-info">Trail Stop: ${pos.trail_stop.percent}% (Trigger: $${pos.trail_stop.trigger_price.toFixed(2)})</span>` : ''}
-                                        ${pos.trail_stop.triggered ? `<br><span class="text-danger"><strong>⚠️ TRAILING STOP TRIGGERED!</strong></span>` : ''}
-                                    </small>
-                                </div>
+                                <small class="text-muted mt-2 d-block">
+                                    Estimated proceeds: <strong>$${pos.close_order.estimated_proceeds.toFixed(2)}</strong>
+                                    ${pos.trail_stop.enabled ? `<br><span class="text-info">Trail Stop: ${pos.trail_stop.percent}% (Trigger: $${pos.trail_stop.trigger_price.toFixed(2)})</span>` : ''}
+                                    ${pos.trail_stop.triggered ? `<br><span class="text-danger"><strong>⚠️ TRAILING STOP TRIGGERED!</strong></span>` : ''}
+                                </small>
                             </div>
                         </div>
                     </div>
-                `;
+                </div>`;
+        }
+
+        function renderPositions(positions) {
+            const container = document.getElementById('positionsContainer');
+
+            if (positions.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5>No Positions</h5>
+                        <p>No long option positions found to monitor.</p>
+                    </div>`;
+                return;
+            }
+
+            // Group positions by symbol, preserving original index for actions
+            const bySymbol = {};
+            positions.forEach((pos, index) => {
+                if (!bySymbol[pos.symbol]) bySymbol[pos.symbol] = [];
+                bySymbol[pos.symbol].push({ pos, index });
+            });
+
+            let html = '';
+
+            Object.keys(bySymbol).sort().forEach(symbol => {
+                const group = bySymbol[symbol];
+                // Use intelligence + underlying price from first position in group
+                const intel = group[0].pos.intelligence;
+                const underlyingPrice = group[0].pos.underlying_price;
+
+                html += `<div class="mb-4">`;
+                html += renderUnderlyingOverview(symbol, intel, underlyingPrice);
+                group.forEach(({ pos, index }) => {
+                    html += renderPositionCard(pos, index);
+                });
+                html += `</div>`;
             });
 
             // Add close all button
@@ -631,8 +764,7 @@
                         <button class="btn btn-warning btn-lg" onclick="showCloseModal('all')">
                             Close ALL Positions (${positions.length})
                         </button>
-                    </div>
-                `;
+                    </div>`;
             }
 
             container.innerHTML = html;
