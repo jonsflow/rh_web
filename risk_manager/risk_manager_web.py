@@ -167,6 +167,8 @@ def _build_positions_response(risk_manager, account_number=None):
             'estimated_proceeds': proceeds
         }
         
+        intelligence = position_manager.get_symbol_intelligence(position.symbol)
+
         position_data = {
             'symbol': position.symbol,
             'strike_price': position.strike_price,
@@ -180,7 +182,19 @@ def _build_positions_response(risk_manager, account_number=None):
             'close_order': close_order,
             'status_color': 'success' if position.pnl > 0 else 'danger' if position.pnl < 0 else 'secondary',
             'trail_stop': trail_stop_data,
-            'take_profit': take_profit_data
+            'take_profit': take_profit_data,
+            # Greeks and market data
+            'delta': position.delta,
+            'gamma': position.gamma,
+            'theta': position.theta,
+            'vega': position.vega,
+            'implied_volatility': position.implied_volatility,
+            'bid_price': position.bid_price,
+            'ask_price': position.ask_price,
+            'underlying_price': position.underlying_price,
+            'dte': position.dte,
+            'moneyness': position.moneyness,
+            'intelligence': intelligence
         }
         
         positions_data.append(position_data)
@@ -689,6 +703,56 @@ def cancel_order(order_id):
         return json_err(result.get('error', 'Cancellation failed'))
     except Exception as e:
         return json_err(str(e))
+
+@app.route('/api/account/<account_prefix>/export-positions')
+def export_account_positions(account_prefix):
+    """Generate enriched position report and write to exports/ directory."""
+    from services.position_enricher import write_position_report
+
+    account_number, risk_manager, err = get_account_context(account_prefix)
+    if err:
+        return err
+
+    positions = list(risk_manager.positions.values())
+    exports_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'exports')
+
+    try:
+        report, filepath = write_position_report(positions, account_prefix, exports_dir)
+        generated_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return json_ok({
+            'report': report,
+            'filepath': filepath,
+            'generated_at': generated_at,
+            'position_count': len(positions),
+        })
+    except Exception as e:
+        logger.error(f"Error generating position report for account ...{account_number[-4:]}: {e}")
+        return json_err(str(e))
+
+
+@app.route('/api/account/<account_prefix>/recommendations')
+def get_account_recommendations(account_prefix):
+    """Read YAML recommendations file written by Claude Code for this account."""
+    exports_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'exports')
+    filepath = os.path.join(exports_dir, f"recommendations_{account_prefix}.yaml")
+
+    if not os.path.exists(filepath):
+        return jsonify({'success': False, 'error': 'No recommendations file found'})
+
+    try:
+        with open(filepath, 'r') as f:
+            content = f.read()
+        mtime = os.path.getmtime(filepath)
+        file_modified_at = datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
+        return json_ok({
+            'recommendations': content,
+            'file_modified_at': file_modified_at,
+            'filepath': filepath,
+        })
+    except Exception as e:
+        logger.error(f"Error reading recommendations for account {account_prefix}: {e}")
+        return json_err(str(e))
+
 
 def initialize_system():
     """Initialize the multi-account system with single login"""

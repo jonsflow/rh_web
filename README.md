@@ -1,18 +1,32 @@
-# Robinhood Options Tools
+# Robinhood Trading Tools
 
-Two Flask-based web applications for managing and analyzing Robinhood options trading:
-- **Portfolio Dashboard**: Analyze trading history with P&L tracking and calendar views
+Flask-based web applications for managing and analyzing Robinhood trading:
+- **Portfolio Dashboard (Options)**: Analyze options trading history with P&L tracking and calendar views
+- **Stocks Dashboard**: Track stock trades with comprehensive P&L analytics
+- **Futures Dashboard**: Monitor futures positions and trading activity
 - **Risk Manager**: Real-time multi-account risk management with automated execution
 
 📊 **[View Class Diagram](class-diagram.html)** - Technical architecture diagram
 
 ## Quick Start
 
-### Portfolio Dashboard
+### Portfolio Dashboard (Options)
 ```bash
 python -m portfolio.rh_web
 ```
-Visit: http://localhost:5000
+Visit: http://localhost:3000
+
+### Stocks Dashboard
+```bash
+python -m stocks.stocks_web
+```
+Visit: http://localhost:3002
+
+### Futures Dashboard
+```bash
+python -m futures.futures_web
+```
+Visit: http://localhost:3001
 
 ### Risk Manager
 ```bash

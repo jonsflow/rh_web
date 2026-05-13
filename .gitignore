@@ -1,4 +1,5 @@
 temp/
+exports/
 __pycache__/
 *.pyc
 *.db

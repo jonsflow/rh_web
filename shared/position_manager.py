@@ -23,6 +23,8 @@ class PositionManager:
         # {account_number: {order_id: {symbol, quantity, price, submit_time, order_type}}}
         self._tracked_orders: Dict[str, Dict[str, Dict]] = {}
         self._order_service = None
+        # Symbol intelligence cache: {symbol: {next_earnings, news, fundamentals, last_fetched}}
+        self._symbol_intelligence: Dict[str, dict] = {}
 
     def set_order_service(self, order_service) -> None:
         """Inject the order service dependency (live-only)."""
@@ -229,7 +231,7 @@ class PositionManager:
             }
     
     def calculate_pnl(self, position: LongPosition) -> None:
-        """Calculate current P&L for a position (aligned with BaseRiskManager)"""
+        """Calculate current P&L and Greeks for a position"""
         try:
             if not position.option_ids:
                 return
@@ -244,6 +246,52 @@ class PositionManager:
                 if new_price > 0:
                     position.current_price = new_price
 
+                # Extract Greeks and market data
+                def _safe_float(val, default=0.0):
+                    try:
+                        return float(val) if val is not None else default
+                    except (TypeError, ValueError):
+                        return default
+
+                position.delta = _safe_float(market_info.get('delta'))
+                position.gamma = _safe_float(market_info.get('gamma'))
+                position.theta = _safe_float(market_info.get('theta'))
+                position.vega = _safe_float(market_info.get('vega'))
+                # IV comes as a decimal (0.298 = 29.8%), convert to percent
+                iv_raw = _safe_float(market_info.get('implied_volatility'))
+                position.implied_volatility = iv_raw * 100 if iv_raw > 0 else 0.0
+                position.bid_price = _safe_float(market_info.get('bid_price'))
+                position.ask_price = _safe_float(market_info.get('ask_price'))
+
+            # Underlying price and derived fields
+            try:
+                up = r.get_latest_price(position.symbol, includeExtendedHours=False)
+                position.underlying_price = float(up[0]) if up else 0.0
+            except Exception:
+                pass
+
+            # DTE
+            try:
+                import datetime as _dt
+                exp = _dt.datetime.strptime(position.expiration_date, '%Y-%m-%d').date()
+                position.dte = max((exp - _dt.date.today()).days, 0)
+            except Exception:
+                position.dte = 0
+
+            # Moneyness
+            u = position.underlying_price
+            k = position.strike_price
+            if u > 0 and k > 0:
+                if position.option_type.lower() == 'call':
+                    diff_pct = (u - k) / k * 100
+                    label = "ITM" if u > k else "OTM"
+                else:
+                    diff_pct = (k - u) / u * 100
+                    label = "ITM" if u < k else "OTM"
+                position.moneyness = f"{label} {abs(diff_pct):.1f}%"
+            else:
+                position.moneyness = ""
+
             if position.current_price > 0:
                 current_value = position.current_price * position.quantity * 100
                 position.pnl = current_value - position.open_premium
@@ -256,6 +304,162 @@ class PositionManager:
 
         except Exception as e:
             self.logger.error(f"Error calculating P&L for {position.symbol}: {e}")
+
+    def _fetch_expected_move(self, symbol: str, underlying_price: float) -> dict | None:
+        """Fetch ATM straddle price for the nearest weekly expiration (1–10 days out)."""
+        import datetime as _dt
+        try:
+            chain = r.get_chains(symbol)
+            if not chain:
+                return None
+            expirations = chain.get('expiration_dates', [])
+            today = _dt.date.today()
+            chosen = None
+            for exp_str in sorted(expirations):
+                exp = _dt.datetime.strptime(exp_str, '%Y-%m-%d').date()
+                dte = (exp - today).days
+                if 1 <= dte <= 10:
+                    chosen = (exp_str, dte)
+                    break
+            if not chosen:
+                return None
+            exp_str, dte = chosen
+
+            instruments = r.find_tradable_options(symbol, exp_str)
+            if not instruments:
+                return None
+            strikes = sorted(set(
+                float(i['strike_price']) for i in instruments
+                if i and i.get('strike_price')
+            ))
+            if not strikes or underlying_price <= 0:
+                return None
+            atm_strike = min(strikes, key=lambda k: abs(k - underlying_price))
+
+            calls = r.find_options_by_expiration_and_strike(symbol, exp_str, str(atm_strike), 'call')
+            puts  = r.find_options_by_expiration_and_strike(symbol, exp_str, str(atm_strike), 'put')
+            call_mark = float((calls[0] if calls else {}).get('adjusted_mark_price', 0) or 0)
+            put_mark  = float((puts[0]  if puts  else {}).get('adjusted_mark_price', 0) or 0)
+
+            if call_mark <= 0 or put_mark <= 0:
+                return None
+
+            amount = call_mark + put_mark
+            return {
+                'amount': round(amount, 2),
+                'percent': round(amount / underlying_price * 100, 2),
+                'expiration': exp_str,
+                'dte': dte,
+                'atm_strike': atm_strike,
+                'call_mark': call_mark,
+                'put_mark': put_mark,
+            }
+        except Exception as e:
+            self.logger.error(f"Expected move fetch failed for {symbol}: {e}")
+            return None
+
+    def refresh_symbol_intelligence(self, symbols: List[str], underlying_prices: Dict[str, float] = None) -> None:
+        """Fetch and cache earnings, news, and fundamentals for a list of symbols."""
+        if underlying_prices is None:
+            underlying_prices = {}
+        for symbol in symbols:
+            try:
+                intelligence = {}
+
+                # Earnings
+                try:
+                    earnings_data = r.get_earnings(symbol)
+                    next_earnings = None
+                    if earnings_data:
+                        import datetime as _dt
+                        today = _dt.date.today()
+                        for e in earnings_data:
+                            report_date = e.get('report') or {}
+                            date_str = report_date.get('date') if isinstance(report_date, dict) else e.get('date')
+                            if not date_str:
+                                continue
+                            try:
+                                edate = _dt.datetime.strptime(date_str, '%Y-%m-%d').date()
+                                if edate >= today:
+                                    timing = report_date.get('timing', '') if isinstance(report_date, dict) else ''
+                                    next_earnings = {'date': date_str, 'timing': timing.upper() if timing else ''}
+                                    break
+                            except ValueError:
+                                continue
+                    intelligence['next_earnings'] = next_earnings
+                except Exception:
+                    intelligence['next_earnings'] = None
+
+                # News
+                try:
+                    news_data = r.get_news(symbol)
+                    headlines = []
+                    if news_data:
+                        for item in news_data[:3]:
+                            headlines.append({
+                                'title': item.get('title', ''),
+                                'source': item.get('source', ''),
+                                'published_at': item.get('published_at', item.get('publishedAt', '')),
+                                'url': item.get('url', item.get('source_url', ''))
+                            })
+                    intelligence['news'] = headlines
+                except Exception:
+                    intelligence['news'] = []
+
+                # Fundamentals
+                try:
+                    fund_data = r.get_fundamentals(symbol)
+                    fund = fund_data[0] if isinstance(fund_data, list) and fund_data else (fund_data or {})
+
+                    def _fmt_large(val):
+                        try:
+                            v = float(val)
+                            if v >= 1e12: return f"${v/1e12:.2f}T"
+                            if v >= 1e9:  return f"${v/1e9:.2f}B"
+                            if v >= 1e6:  return f"${v/1e6:.2f}M"
+                            return f"${v:,.0f}"
+                        except (TypeError, ValueError):
+                            return None
+
+                    intelligence['fundamentals'] = {
+                        'sector': fund.get('sector') or None,
+                        'industry': fund.get('industry') or None,
+                        'pe_ratio': fund.get('pe_ratio') or None,
+                        'pb_ratio': fund.get('pb_ratio') or None,
+                        'dividend_yield': f"{float(fund.get('dividend_yield') or 0):.2f}%" if fund.get('dividend_yield') else None,
+                        'market_cap': _fmt_large(fund.get('market_cap')),
+                        'high_52_weeks': fund.get('high_52_weeks'),
+                        'low_52_weeks': fund.get('low_52_weeks'),
+                        'average_volume': fund.get('average_volume') or None,
+                        'num_employees': fund.get('num_employees') or None,
+                        'ceo': fund.get('ceo') or None,
+                        'year_founded': fund.get('year_founded') or None,
+                        'headquarters': (
+                            f"{fund.get('headquarters_city')}, {fund.get('headquarters_state')}"
+                            if fund.get('headquarters_city') and fund.get('headquarters_state') else None
+                        ),
+                    }
+                except Exception:
+                    intelligence['fundamentals'] = {}
+
+                # Expected move (ATM straddle for nearest weekly expiration)
+                underlying_price = underlying_prices.get(symbol, 0.0)
+                intelligence['expected_move'] = self._fetch_expected_move(symbol, underlying_price) if underlying_price > 0 else None
+
+                import datetime as _dt2
+                intelligence['last_fetched'] = _dt2.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+                with self._lock:
+                    self._symbol_intelligence[symbol] = intelligence
+
+                self.logger.info(f"Refreshed intelligence for {symbol}")
+            except Exception as e:
+                self.logger.error(f"Error refreshing intelligence for {symbol}: {e}")
+
+    def get_symbol_intelligence(self, symbol: str) -> dict:
+        """Return cached intelligence for a symbol, or empty dict."""
+        with self._lock:
+            return self._symbol_intelligence.get(symbol, {})
     
     def enable_trailing_stop(self, account_number: str, symbol: str, percent: float) -> bool:
         """Enable trailing stop for a position"""

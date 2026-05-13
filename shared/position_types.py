@@ -4,7 +4,7 @@ Position Data Types
 Shared position classes to avoid circular imports
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 @dataclass
@@ -20,7 +20,18 @@ class LongPosition:
     pnl: float = 0.0
     pnl_percent: float = 0.0
     option_ids: List[str] = None
-    
+    # Greeks and market data (populated by calculate_pnl)
+    delta: float = 0.0
+    gamma: float = 0.0
+    theta: float = 0.0
+    vega: float = 0.0
+    implied_volatility: float = 0.0
+    bid_price: float = 0.0
+    ask_price: float = 0.0
+    underlying_price: float = 0.0
+    dte: int = 0
+    moneyness: str = ""
+
     def __post_init__(self):
         if self.option_ids is None:
             self.option_ids = []
