@@ -20,6 +20,7 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 # Files hoisted out of the dashboards, as paths under shared/static/js/
 SHARED_JS = [
     'asset-config.js',
+    'calendar.js',
     'components/position-table.js',
     'components/summary-card.js',
     'services/api-service.js',
@@ -31,6 +32,7 @@ SHARED_JS = [
 MOUNTED = [
     ('portfolio.rh_web', 'portfolio/templates/index.html'),
     ('futures.futures_web', 'futures/templates/index.html'),
+    ('stocks.stocks_web', 'stocks/templates/index.html'),
 ]
 
 DASHBOARDS = ['portfolio', 'stocks', 'futures']
@@ -97,11 +99,13 @@ def test_templates_use_the_shared_path(module_name, template):
         )
 
 
-def test_stocks_does_not_mount_the_blueprint():
-    """Stocks loads none of the shared files yet, so it must not claim to.
+def test_every_page_declares_its_asset_type():
+    """A page that loads the shared components must say which asset it is.
 
-    Pinned deliberately: when stocks moves onto the shared renderer, this test
-    is the one to update, alongside adding it to MOUNTED.
+    Without it the components have no config to read and render nothing.
     """
-    client = _app('stocks.stocks_web').test_client()
-    assert client.get('/shared/static/js/sorting.js').status_code == 404
+    for _, template in MOUNTED:
+        with open(os.path.join(REPO, template)) as handle:
+            markup = handle.read()
+        assert 'setAssetType(' in markup, f'{template} does not declare its asset type'
+        assert 'asset-config.js' in markup, f'{template} does not load the asset config'

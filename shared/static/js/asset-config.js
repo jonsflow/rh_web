@@ -68,6 +68,35 @@ const ASSET_CONFIGS = {
                 { key: 'quantity', label: 'Qty', sortable: true, type: 'number' },
                 { key: 'premium', label: 'Premium', sortable: true, type: 'currency' }
             ]
+        },
+        // Calendar: what the day shows and what its detail modal contains.
+        // Transcribed from each dashboard as it behaved before they merged --
+        // note the P&L field differs, which is why it is configuration.
+        calendar: {
+            pnlField: 'pnl',
+            dayStates: false,
+            detail: {
+                title: 'Positions for {date} - {pnl} ({count} trades)',
+                sources: ['positionsByDate'],
+                header: null,
+                sections: [
+                    {
+                        source: 'positionsByDate',
+                        from: 'positions',
+                        heading: '',
+                        columns: [
+                            { label: 'Symbol', key: 'symbol' },
+                            { label: 'Strategy', key: 'strategy', empty: '-' },
+                            { label: 'Strike', key: 'strike_price' },
+                            { label: 'Type', key: 'option_type' },
+                            { label: 'Quantity', key: 'quantity', format: 'number' },
+                            { label: 'Open Price', key: 'open_price', format: 'currency' },
+                            { label: 'Close Price', key: 'close_price', format: 'currency' },
+                            { label: 'P&L', key: 'net_credit', format: 'pnl' }
+                        ]
+                    }
+                ]
+            }
         }
     },
 
@@ -116,6 +145,66 @@ const ASSET_CONFIGS = {
                 { key: 'average_price', label: 'Price', sortable: true, type: 'currency' },
                 { key: 'total_amount', label: 'Amount', sortable: true, type: 'currency' }
             ]
+        },
+        calendar: {
+            // Stocks shows P&L before fees, and colours a day that only opened
+            // positions differently from one with nothing at all
+            pnlField: 'pnl_no_fees',
+            dayStates: true,
+            detail: {
+                title: 'Trading Summary - {date}',
+                sources: ['dailySummary', 'positionsByDate'],
+                header: {
+                    source: 'dailySummary',
+                    from: 'summary.totals',
+                    pnlField: 'total_pnl',
+                    countSource: 'positionsByDate',
+                    countFrom: 'orders',
+                    sumField: 'quantity',
+                    sumLabel: 'shares'
+                },
+                sections: [
+                    {
+                        source: 'dailySummary',
+                        from: 'summary.closed_positions',
+                        heading: 'Closed Positions',
+                        omitWhenEmpty: true,
+                        spacerAfter: true,
+                        columns: [
+                            { label: 'Symbol', key: 'symbol', format: 'strong' },
+                            { label: 'Quantity', key: 'quantity', format: 'number' },
+                            { label: 'Avg Buy Price', key: 'avg_buy_price', format: 'currency' },
+                            { label: 'Avg Sell Price', key: 'avg_sell_price', format: 'currency' },
+                            { label: 'P&L', key: 'pnl', format: 'signedPnl' }
+                        ]
+                    },
+                    {
+                        source: 'dailySummary',
+                        from: 'summary.opened_positions',
+                        heading: 'Opened Positions',
+                        omitWhenEmpty: true,
+                        spacerAfter: true,
+                        columns: [
+                            { label: 'Symbol', key: 'symbol', format: 'strong' },
+                            { label: 'Quantity', key: 'quantity', format: 'number' },
+                            { label: 'Avg Buy Price', key: 'avg_buy_price', format: 'currency' }
+                        ]
+                    },
+                    {
+                        source: 'positionsByDate',
+                        from: 'orders',
+                        heading: 'Detailed Orders ({count} total)',
+                        columns: [
+                            { label: 'Symbol', key: 'symbol' },
+                            { label: 'Time', key: 'execution_time', format: 'datetime' },
+                            { label: 'Side', key: 'side', format: 'side' },
+                            { label: 'Quantity', key: 'quantity', format: 'number' },
+                            { label: 'Price', key: 'average_price', format: 'currency' },
+                            { label: 'Total Amount', key: 'total_amount', format: 'currency' }
+                        ]
+                    }
+                ]
+            }
         }
     },
 
@@ -164,6 +253,51 @@ const ASSET_CONFIGS = {
                 { key: 'price', label: 'Price', sortable: true, type: 'currency' },
                 { key: 'realized_pnl', label: 'P&L', sortable: true, type: 'pnl' }
             ]
+        },
+        calendar: {
+            pnlField: 'pnl_no_fees',
+            dayStates: false,
+            detail: {
+                title: 'Trading Summary - {date}',
+                sources: ['dailySummary', 'positionsByDate'],
+                header: null,
+                sections: [
+                    {
+                        source: 'dailySummary',
+                        from: 'summary.contracts',
+                        heading: 'Purchase and Sale Summary',
+                        spacerAfter: true,
+                        columns: [
+                            { label: 'Symbol', key: 'symbol' },
+                            { label: 'Total Qty Long', key: 'total_qty_long', format: 'number' },
+                            { label: 'Total Qty Short', key: 'total_qty_short', format: 'number' },
+                            { label: 'Gross P&L', key: 'gross_pnl', format: 'signedPnl' }
+                        ],
+                        totals: {
+                            from: 'summary.totals',
+                            columns: [
+                                { literal: 'TOTALS' },
+                                { key: 'total_qty_long', format: 'number' },
+                                { key: 'total_qty_short', format: 'number' },
+                                { key: 'gross_pnl', format: 'signedPnl' }
+                            ]
+                        }
+                    },
+                    {
+                        source: 'positionsByDate',
+                        from: 'orders',
+                        heading: 'Detailed Orders ({count} total)',
+                        columns: [
+                            { label: 'Symbol', keys: ['symbol', 'contract_id'], format: 'fallback' },
+                            { label: 'Time', key: 'execution_time', format: 'datetime' },
+                            { label: 'Side', key: 'order_side', format: 'number' },
+                            { label: 'Quantity', keys: ['filled_quantity', 'quantity'], format: 'fallback' },
+                            { label: 'Price', key: 'average_price', format: 'currency' },
+                            { label: 'Realized P&L', key: 'realized_pnl', format: 'signedPnl' }
+                        ]
+                    }
+                ]
+            }
         }
     }
 };
