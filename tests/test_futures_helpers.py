@@ -93,7 +93,10 @@ def test_extract_futures_pnl_cancelled_order():
 
 
 def test_calculate_total_futures_pnl():
-    """Test calculating aggregate P&L from multiple orders."""
+    """Test calculating aggregate P&L from multiple orders.
+
+    The aggregate counts CLOSING orders, so the fixture marks them.
+    """
     try:
         from robin_stocks.robinhood.futures import calculate_total_futures_pnl
     except ImportError:
@@ -101,6 +104,7 @@ def test_calculate_total_futures_pnl():
 
     orders = [
         {
+            'positionEffectAtPlacementTime': 'CLOSING',
             'realizedPnl': {
                 'realizedPnl': {'amount': '100.00', 'currency': 'USD'},
                 'realizedPnlWithoutFees': {'amount': '103.00', 'currency': 'USD'}
@@ -110,6 +114,7 @@ def test_calculate_total_futures_pnl():
             'totalGoldSavings': {'amount': '1.25', 'currency': 'USD'}
         },
         {
+            'positionEffectAtPlacementTime': 'CLOSING',
             'realizedPnl': {
                 'realizedPnl': {'amount': '-50.00', 'currency': 'USD'},
                 'realizedPnlWithoutFees': {'amount': '-47.00', 'currency': 'USD'}
@@ -126,12 +131,12 @@ def test_calculate_total_futures_pnl():
 
     result = calculate_total_futures_pnl(orders)
 
-    assert result['total_pnl'] == 50.0  # 100 + (-50) + 0
-    assert result['total_pnl_without_fees'] == 56.0  # 103 + (-47) + 0
-    assert result['total_fees'] == 6.0  # 3 + 3 + 0
-    assert result['total_commissions'] == 5.0  # 2.5 + 2.5 + 0
-    assert result['total_gold_savings'] == 2.5  # 1.25 + 1.25 + 0
-    assert result['num_orders'] == 3
+    assert result['total_pnl'] == 50.0  # 100 + (-50)
+    assert result['total_pnl_without_fees'] == 56.0  # 103 + (-47)
+    assert result['total_fees'] == 6.0  # 3 + 3
+    assert result['total_commissions'] == 5.0  # 2.5 + 2.5
+    assert result['total_gold_savings'] == 2.5  # 1.25 + 1.25
+    assert result['num_orders'] == 2  # the two CLOSING orders
 
 
 def test_calculate_total_futures_pnl_empty_list():

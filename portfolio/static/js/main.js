@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Use new ApiService if available, otherwise fallback to direct fetch
         const apiCall = (typeof window.ApiService !== 'undefined') 
-            ? window.ApiService.fetchOptionsData()
+            ? window.ApiService.fetchData()
             : fetch('/api/options').then(response => {
                 if (response.status === 401) {
                     window.location.href = '/login';

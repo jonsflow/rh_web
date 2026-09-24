@@ -2,6 +2,7 @@ import json
 import traceback
 from flask import Flask, render_template, jsonify, request, url_for, send_from_directory, redirect
 from futures.data_fetcher import FuturesDataFetcher
+from shared.web_assets import shared_static_blueprint
 
 # Initialize Flask app
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
@@ -13,6 +14,9 @@ data_fetcher = FuturesDataFetcher()
 @app.route('/static/<path:path>')
 def send_static(path):
     return send_from_directory('static', path)
+
+# Frontend files shared with the other dashboards, served at /shared/static/...
+app.register_blueprint(shared_static_blueprint())
 
 def fetch_and_process_futures_orders():
     """Fetch and process futures orders"""

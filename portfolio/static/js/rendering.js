@@ -84,7 +84,8 @@ function renderOpenPositions() {
         if (!window.openPositionTable) {
             window.openPositionTable = new window.PositionTable({
                 container: document.querySelector('#openPositionsTable'),
-                type: 'open'
+                type: 'open',
+                assetType: 'options'
             });
         }
         

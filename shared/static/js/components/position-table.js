@@ -7,7 +7,8 @@ class PositionTable {
      * @param {Object} options - Configuration options
      * @param {HTMLElement|string} options.container - Container element or selector
      * @param {string} options.type - Table type: 'open', 'closed', 'expired', 'orders'
-     * @param {Array} options.columns - Column definitions
+     * @param {string} options.assetType - Asset type; defaults to the current selection
+     * @param {Array} options.columns - Column definitions, overriding the asset's
      * @param {boolean} options.sortable - Whether table is sortable
      */
     constructor(options = {}) {
@@ -15,6 +16,9 @@ class PositionTable {
             ? document.querySelector(options.container) 
             : options.container;
         this.type = options.type || 'open';
+        // null means the current selection in AssetConfig
+        this.assetType = options.assetType || null;
+        this._config = options.config || null;
         this.columns = options.columns || this._getDefaultColumns();
         this.sortable = options.sortable !== false;
         this.data = [];
@@ -24,6 +28,10 @@ class PositionTable {
         if (!this.container) {
             console.error('PositionTable: Container not found');
         }
+    }
+
+    get config() {
+        return this._config || window.AssetConfig;
     }
 
     /**
@@ -143,56 +151,21 @@ class PositionTable {
     }
 
     /**
-     * Get default columns based on table type
+     * Columns for this table, from the asset's configuration.
+     *
+     * The component holds no field names of its own: what a column is called
+     * and which key it reads are the asset's business, so the same table
+     * renders options, stocks and futures.
      * @private
      * @returns {Array} Column definitions
      */
     _getDefaultColumns() {
-        const baseColumns = [
-            { key: 'symbol', label: 'Symbol', sortable: true },
-            { key: 'strategy', label: 'Strategy', sortable: true },
-            { key: 'direction', label: 'Direction', sortable: true },
-            { key: 'option_type', label: 'Type', sortable: true },
-            { key: 'strike_price', label: 'Strike', sortable: true },
-            { key: 'expiration_date', label: 'Expiration', sortable: true, type: 'date' }
-        ];
-
-        switch (this.type) {
-            case 'open':
-                return [
-                    ...baseColumns,
-                    { key: 'quantity', label: 'Qty', sortable: true, type: 'number' },
-                    { key: 'open_premium', label: 'Premium', sortable: true, type: 'currency' },
-                    { key: 'open_date', label: 'Opened', sortable: true, type: 'date' }
-                ];
-            
-            case 'closed':
-            case 'expired':
-                return [
-                    ...baseColumns,
-                    { key: 'quantity', label: 'Qty', sortable: true, type: 'number' },
-                    { key: 'net_credit', label: 'P&L', sortable: true, type: 'pnl' },
-                    { key: 'open_date', label: 'Opened', sortable: true, type: 'date' },
-                    { key: 'close_date', label: 'Closed', sortable: true, type: 'date' }
-                ];
-            
-            case 'orders':
-                return [
-                    { key: 'symbol', label: 'Symbol', sortable: true },
-                    { key: 'created_at', label: 'Date', sortable: true, type: 'datetime' },
-                    { key: 'position_effect', label: 'Effect', sortable: true },
-                    { key: 'strategy', label: 'Strategy', sortable: true },
-                    { key: 'direction', label: 'Direction', sortable: true },
-                    { key: 'option_type', label: 'Type', sortable: true },
-                    { key: 'strike_price', label: 'Strike', sortable: true },
-                    { key: 'expiration_date', label: 'Expiration', sortable: true, type: 'date' },
-                    { key: 'quantity', label: 'Qty', sortable: true, type: 'number' },
-                    { key: 'premium', label: 'Premium', sortable: true, type: 'currency' }
-                ];
-            
-            default:
-                return baseColumns;
+        const config = this.config;
+        if (!config) {
+            console.error('PositionTable: no AssetConfig available and no columns given');
+            return [];
         }
+        return config.columns(this.type, this.assetType);
     }
 
     /**

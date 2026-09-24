@@ -205,15 +205,18 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
     
     <!-- New modular components -->
-    <script src="/static/js/services/api-service.js"></script>
-    <script src="/static/js/components/summary-card.js"></script>
-    <script src="/static/js/components/position-table.js"></script>
+    <!-- Which asset this page shows; the shared components read it from here -->
+    <script src="/shared/static/js/asset-config.js"></script>
+    <script>window.AssetConfig.setAssetType('futures');</script>
+    <script src="/shared/static/js/services/api-service.js"></script>
+    <script src="/shared/static/js/components/summary-card.js"></script>
+    <script src="/shared/static/js/components/position-table.js"></script>
     
     <!-- Original working files -->
     <script src="/static/js/main.js"></script>
     <script src="/static/js/rendering.js"></script>
     <script src="/static/js/filters.js"></script>
-    <script src="/static/js/sorting.js"></script>
+    <script src="/shared/static/js/sorting.js"></script>
     <script src="/static/js/calendar.js"></script>
 </body>
 </html>

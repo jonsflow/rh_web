@@ -1,24 +1,32 @@
 /**
- * Data Manager - Handles application state and data transformations
- * Provides a clean interface between API data and UI components
+ * Data Manager - application state and data transformations.
+ *
+ * Field names come from AssetConfig, so the same summaries and filters are
+ * produced for options, stocks and futures rather than only for options.
  */
 class DataManager {
-    constructor() {
-        this.optionsData = null;
+    constructor(config = null) {
+        this.data = null;
         this.dailyPnlData = null;
         this.eventListeners = new Map();
+        this._config = config;
+    }
+
+    get config() {
+        return this._config || window.AssetConfig;
     }
 
     /**
-     * Load initial options data
+     * Load positions and orders for the selected asset and account.
+     * @param {Object} [options] - assetType and account overrides
      * @returns {Promise<void>}
      */
-    async loadOptionsData() {
+    async loadData(options = {}) {
         try {
-            this.optionsData = await window.ApiService.fetchOptionsData();
-            this._notifyListeners('dataLoaded', this.optionsData);
+            this.data = await window.ApiService.fetchData(options);
+            this._notifyListeners('dataLoaded', this.data);
         } catch (error) {
-            console.error('Failed to load options data:', error);
+            console.error('Failed to load data:', error);
             this._notifyListeners('dataError', error);
             throw error;
         }
@@ -27,19 +35,20 @@ class DataManager {
     /**
      * Refresh data from Robinhood
      * @param {boolean} forceRefresh - Force full refresh
+     * @param {Object} [options] - assetType and account overrides
      * @returns {Promise<void>}
      */
-    async refreshData(forceRefresh = false) {
+    async refreshData(forceRefresh = false, options = {}) {
         try {
             this._notifyListeners('refreshStarted');
             
             // Update data via API
-            await window.ApiService.updateData(forceRefresh);
+            await window.ApiService.updateData(forceRefresh, options);
             
             // Reload the updated data
-            this.optionsData = await window.ApiService.fetchOptionsData();
+            this.data = await window.ApiService.fetchData(options);
             
-            this._notifyListeners('dataRefreshed', this.optionsData);
+            this._notifyListeners('dataRefreshed', this.data);
         } catch (error) {
             console.error('Failed to refresh data:', error);
             this._notifyListeners('refreshError', error);
@@ -66,32 +75,34 @@ class DataManager {
     }
 
     /**
-     * Get summary statistics from current options data
+     * Get summary statistics for the loaded asset.
      * @returns {Object} Summary statistics
      */
     getSummaryStats() {
-        if (!this.optionsData) return null;
+        if (!this.data) return null;
+
+        const pnlField = this.config.field('pnl');
+        const openValueField = this.config.field('openValue');
+
+        const sumPnl = (positions) => (positions || [])
+            .filter(position => position[pnlField] !== null && position[pnlField] !== undefined)
+            .reduce((total, position) => total + position[pnlField], 0);
 
         // Calculate P&L breakdown
-        const closedPL = this.optionsData.closed_positions
-            .filter(position => position.net_credit !== null && position.net_credit !== undefined)
-            .reduce((total, position) => total + position.net_credit, 0);
-        
-        const expiredPL = this.optionsData.expired_positions
-            .filter(position => position.net_credit !== null && position.net_credit !== undefined)
-            .reduce((total, position) => total + position.net_credit, 0);
+        const closedPL = sumPnl(this.data.closed_positions);
+        const expiredPL = sumPnl(this.data.expired_positions);
 
         const totalPL = closedPL + expiredPL;
 
         // Calculate open value
-        const openValue = this.optionsData.open_positions.reduce((total, position) => {
-            return total + (position.open_premium || 0);
+        const openValue = (this.data.open_positions || []).reduce((total, position) => {
+            return total + (position[openValueField] || 0);
         }, 0);
 
         // Count positions
-        const openCount = this.optionsData.open_positions.length;
-        const closedCount = this.optionsData.closed_positions.length;
-        const expiredCount = this.optionsData.expired_positions.length;
+        const openCount = (this.data.open_positions || []).length;
+        const closedCount = (this.data.closed_positions || []).length;
+        const expiredCount = (this.data.expired_positions || []).length;
         const totalTrades = openCount + closedCount + expiredCount;
 
         return {
@@ -108,26 +119,29 @@ class DataManager {
 
     /**
      * Get unique filter options from current data
-     * @returns {Object} Filter options for symbols, strategies, etc.
+     * @returns {Object} Facet values for this asset, plus the date range
      */
     getFilterOptions() {
-        if (!this.optionsData) return null;
+        if (!this.data) return null;
 
         const allPositions = [
-            ...this.optionsData.open_positions,
-            ...this.optionsData.closed_positions,
-            ...this.optionsData.expired_positions
+            ...(this.data.open_positions || []),
+            ...(this.data.closed_positions || []),
+            ...(this.data.expired_positions || [])
         ];
 
-        // Extract unique values for filters
-        const symbols = [...new Set(allPositions.map(p => p.symbol).filter(Boolean))].sort();
-        const strategies = [...new Set(allPositions.map(p => p.strategy).filter(Boolean))].sort();
-        const directions = [...new Set(allPositions.map(p => p.direction).filter(Boolean))].sort();
-        const optionTypes = [...new Set(allPositions.map(p => p.option_type).filter(Boolean))].sort();
+        // Unique values for each facet this asset offers, keyed by field name
+        const facets = {};
+        this.config.facets().forEach(field => {
+            facets[field] = [...new Set(allPositions.map(p => p[field]).filter(Boolean))].sort();
+        });
+
+        const openDateField = this.config.field('openDate');
+        const closeDateField = this.config.field('closeDate');
 
         // Get date ranges
         const allDates = allPositions
-            .map(p => p.open_date || p.close_date)
+            .map(p => p[openDateField] || p[closeDateField])
             .filter(Boolean)
             .map(date => new Date(date))
             .sort((a, b) => a - b);
@@ -136,10 +150,8 @@ class DataManager {
         const maxDate = allDates.length > 0 ? allDates[allDates.length - 1] : new Date();
 
         return {
-            symbols,
-            strategies,
-            directions,
-            optionTypes,
+            // Unique values per facet field, e.g. facets.symbol, facets.option_type
+            facets,
             dateRange: {
                 min: minDate.toISOString().split('T')[0],
                 max: maxDate.toISOString().split('T')[0]
@@ -193,11 +205,11 @@ class DataManager {
     }
 
     /**
-     * Get current options data
-     * @returns {Object|null} Current options data
+     * Get the currently loaded positions and orders
+     * @returns {Object|null} Current data
      */
-    getOptionsData() {
-        return this.optionsData;
+    getData() {
+        return this.data;
     }
 
     /**
@@ -210,4 +222,5 @@ class DataManager {
 }
 
 // Export as singleton
+window.DataManagerClass = DataManager;
 window.DataManager = new DataManager();
