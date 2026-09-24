@@ -24,6 +24,7 @@
                 <div class="tab active" data-tab="openPositions">Open Positions</div>
                 <div class="tab" data-tab="closedPositions">Closed Positions</div>
                 <div class="tab" data-tab="expiredPositions">Expired Positions</div>
+                <div class="tab" data-tab="bySymbol">By Symbol</div>
                 <div class="tab" data-tab="allOrders">All Orders</div>
                 <div class="tab" data-tab="calendar">Calendar</div>
             </div>
@@ -180,6 +181,30 @@
             </div>
             
             <!-- All Orders Tab -->
+            <!-- By Symbol Tab -->
+            <div id="bySymbol" class="tab-content">
+                <h2>P&L by Symbol</h2>
+                <div class="sub-tabs">
+                    <div class="sub-tab active" data-subtab="table">Table</div>
+                    <div class="sub-tab" data-subtab="heatmap">Heat Map</div>
+                </div>
+                <div id="table" class="sub-tab-content active">
+                    <!-- Table will be inserted here -->
+                </div>
+                <div id="heatmap" class="sub-tab-content">
+                    <!-- Heatmap will be inserted here -->
+                </div>
+
+                <!-- Symbol Detail Modal -->
+                <div id="symbolModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="close" id="symbolModalClose">&times;</span>
+                        <h2 id="symbolModalTitle"></h2>
+                        <div id="symbolModalTrades"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="allOrders" class="tab-content">
                 <div class="filters">
                     <div class="filter-row">
@@ -269,6 +294,7 @@
     <script src="/shared/static/js/services/api-service.js"></script>
     <script src="/shared/static/js/components/summary-card.js"></script>
     <script src="/shared/static/js/components/position-table.js"></script>
+    <script src="/shared/static/js/components/by-symbol.js"></script>
     
     <!-- Original working files -->
     <script src="/static/js/main.js"></script>

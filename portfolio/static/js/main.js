@@ -92,7 +92,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize dashboard
+    function renderBySymbol() {
+        if (typeof window.BySymbolView === 'undefined') return;
+        if (!window.bySymbolView) {
+            window.bySymbolView = new window.BySymbolView({ assetType: 'options' });
+            window.BySymbolView.setupUi();
+        }
+        window.bySymbolView.render(optionsData);
+    }
+
     function renderDashboard() {
+        renderBySymbol();
         renderSummary();
         renderOpenPositions();
         renderClosedPositions();

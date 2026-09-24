@@ -97,6 +97,34 @@ const ASSET_CONFIGS = {
                     }
                 ]
             }
+        },
+        // By-symbol view: where closed trades and orders live in this asset's
+        // payload, and what its detail tables show
+        bySymbol: {
+            closedFrom: ['closed_positions', 'expired_positions'],
+            symbolField: 'symbol',
+            pnlField: 'net_credit',
+            quantityField: 'quantity',
+            unitLabel: 'contracts',
+            ordersFrom: 'all_orders',
+            orderSymbolField: 'symbol',
+            orderDateField: 'created_at',
+            closedColumns: [
+                { label: 'Opened', key: 'open_date' },
+                { label: 'Closed', key: 'close_date' },
+                { label: 'Strike', key: 'strike_price' },
+                { label: 'Type', key: 'option_type' },
+                { label: 'Quantity', key: 'quantity' },
+                { label: 'P&L', key: 'net_credit', format: 'signedPnl' }
+            ],
+            orderColumns: [
+                { label: 'Date', key: 'created_at', format: 'date' },
+                { label: 'Effect', key: 'position_effect' },
+                { label: 'Strike', key: 'strike_price' },
+                { label: 'Type', key: 'option_type' },
+                { label: 'Quantity', key: 'quantity' },
+                { label: 'Premium', key: 'premium', format: 'currency' }
+            ]
         }
     },
 
@@ -205,6 +233,31 @@ const ASSET_CONFIGS = {
                     }
                 ]
             }
+        },
+        bySymbol: {
+            closedFrom: ['closed_positions'],
+            symbolField: 'symbol',
+            pnlField: 'pnl',
+            quantityField: 'quantity',
+            unitLabel: 'shares',
+            ordersFrom: 'all_orders',
+            orderSymbolField: 'symbol',
+            orderDateField: 'last_transaction_at',
+            closedColumns: [
+                { label: 'Buy Date', key: 'buy_date' },
+                { label: 'Sell Date', key: 'sell_date' },
+                { label: 'Quantity', key: 'quantity' },
+                { label: 'Avg Buy Price', key: 'buy_price', format: 'currency' },
+                { label: 'Avg Sell Price', key: 'sell_price', format: 'currency' },
+                { label: 'P&L', key: 'pnl', format: 'signedPnl' }
+            ],
+            orderColumns: [
+                { label: 'Date', key: 'last_transaction_at', format: 'date' },
+                { label: 'Side', key: 'side', format: 'side' },
+                { label: 'Quantity', key: 'quantity' },
+                { label: 'Price', key: 'average_price', format: 'currency' },
+                { label: 'Total', key: 'total_amount', format: 'currency' }
+            ]
         }
     },
 
@@ -298,6 +351,31 @@ const ASSET_CONFIGS = {
                     }
                 ]
             }
+        },
+        bySymbol: {
+            closedFrom: ['closed_positions'],
+            symbolField: 'display_symbol',
+            pnlField: 'realized_pnl',
+            quantityField: 'quantity',
+            unitLabel: 'contracts',
+            ordersFrom: 'all_orders',
+            orderSymbolField: 'display_symbol',
+            orderDateField: 'execution_time',
+            closedColumns: [
+                { label: 'Closed', key: 'close_date' },
+                { label: 'Side', key: 'order_side' },
+                { label: 'Quantity', key: 'quantity' },
+                { label: 'Price', key: 'close_price', format: 'currency' },
+                { label: 'Fees', key: 'total_fee', format: 'currency' },
+                { label: 'P&L', key: 'realized_pnl', format: 'signedPnl' }
+            ],
+            orderColumns: [
+                { label: 'Date', key: 'execution_time', format: 'date' },
+                { label: 'Side', key: 'order_side' },
+                { label: 'Quantity', key: 'filled_quantity' },
+                { label: 'Price', key: 'average_price', format: 'currency' },
+                { label: 'P&L', key: 'realized_pnl', format: 'signedPnl' }
+            ]
         }
     }
 };

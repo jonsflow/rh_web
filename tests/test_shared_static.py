@@ -21,6 +21,7 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SHARED_JS = [
     'asset-config.js',
     'calendar.js',
+    'components/by-symbol.js',
     'components/position-table.js',
     'components/summary-card.js',
     'services/api-service.js',
@@ -109,3 +110,20 @@ def test_every_page_declares_its_asset_type():
             markup = handle.read()
         assert 'setAssetType(' in markup, f'{template} does not declare its asset type'
         assert 'asset-config.js' in markup, f'{template} does not load the asset config'
+
+
+def test_every_dashboard_offers_the_by_symbol_view():
+    """By-symbol began as a stocks-only view; all three now serve it.
+
+    Checks the markup the shared component writes into, so a dashboard that
+    loads the script but has nowhere to put the output is caught.
+    """
+    for _, template in MOUNTED:
+        with open(os.path.join(REPO, template)) as handle:
+            markup = handle.read()
+
+        assert 'data-tab="bySymbol"' in markup, f'{template} has no By Symbol tab'
+        assert 'by-symbol.js' in markup, f'{template} does not load the shared view'
+        for element_id in ('bySymbol', 'table', 'heatmap', 'symbolModal',
+                           'symbolModalTitle', 'symbolModalTrades'):
+            assert f'id="{element_id}"' in markup, f'{template} is missing #{element_id}'
