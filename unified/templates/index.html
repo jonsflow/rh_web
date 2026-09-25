@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <link rel="stylesheet" href="/shared/static/css/unified.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Portfolio</h1>
+
+            <!-- Asset and account switchers -->
+            <div class="switchers">
+                <div class="switcher" id="assetSwitcher" role="group" aria-label="Asset type">
+                    <!-- Asset buttons are built from /api/assets -->
+                </div>
+                <label class="switcher-field">
+                    <span>Account</span>
+                    <select id="accountSelect">
+                        <option value="">All accounts</option>
+                    </select>
+                </label>
+            </div>
+        </header>
+
+        <div id="loadingIndicator" class="loading">Loading...</div>
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div id="dashboardContent" style="display: none;">
+            <div id="summary" class="summary">
+                <!-- Summary cards will be inserted here -->
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="openPositions">Open Positions</div>
+                <div class="tab" data-tab="closedPositions">Closed Positions</div>
+                <div class="tab" data-tab="bySymbol">By Symbol</div>
+                <div class="tab" data-tab="allOrders">All Orders</div>
+                <div class="tab" data-tab="calendar">Calendar</div>
+            </div>
+
+            <div id="openPositions" class="tab-content active"></div>
+
+            <div id="closedPositions" class="tab-content"></div>
+
+            <!-- By Symbol Tab -->
+            <div id="bySymbol" class="tab-content">
+                <h2>P&L by Symbol</h2>
+                <div class="sub-tabs">
+                    <div class="sub-tab active" data-subtab="table">Table</div>
+                    <div class="sub-tab" data-subtab="heatmap">Heat Map</div>
+                </div>
+                <div id="table" class="sub-tab-content active"></div>
+                <div id="heatmap" class="sub-tab-content"></div>
+
+                <!-- Symbol Detail Modal -->
+                <div id="symbolModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="close" id="symbolModalClose">&times;</span>
+                        <h2 id="symbolModalTitle"></h2>
+                        <div id="symbolModalTrades"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="allOrders" class="tab-content"></div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar" class="tab-content">
+                <div id="calendarView"></div>
+
+                <!-- Day Detail Modal -->
+                <div id="positionModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2 id="modalTitle"></h2>
+                        <div id="modalPositions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+
+    <!-- Shared components; this page serves every asset, so it sets its own
+         asset type as the switcher changes rather than declaring one here -->
+    <script src="/shared/static/js/asset-config.js"></script>
+    <script>window.AssetConfig.setRouting('unified');</script>
+    <script src="/shared/static/js/services/api-service.js"></script>
+    <script src="/shared/static/js/services/data-manager.js"></script>
+    <script src="/shared/static/js/services/journal-service.js"></script>
+    <script src="/shared/static/js/components/summary-card.js"></script>
+    <script src="/shared/static/js/components/position-table.js"></script>
+    <script src="/shared/static/js/components/by-symbol.js"></script>
+    <script src="/shared/static/js/components/journal-panel.js"></script>
+    <script src="/shared/static/js/sorting.js"></script>
+    <script src="/shared/static/js/calendar.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

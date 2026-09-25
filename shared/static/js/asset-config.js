@@ -381,6 +381,21 @@ const ASSET_CONFIGS = {
 };
 
 
+/**
+ * The unified app serves every asset behind /api/<asset_type>/..., so its paths
+ * are the same shape for all three and are generated rather than listed. The
+ * standalone dashboards keep the paths in each config above.
+ */
+const UNIFIED_PATHS = {
+    data: 'data',
+    update: 'update',
+    dailyPnl: 'daily-pnl',
+    positionsByDate: 'positions/date/{date}',
+    dailySummary: 'daily-summary/{date}',
+    allTradingDates: 'all-trading-dates'
+};
+
+
 class AssetConfigRegistry {
     constructor(configs) {
         this.configs = configs;
@@ -390,6 +405,9 @@ class AssetConfigRegistry {
         // The account being viewed. null means every account the backend
         // returns, which is what it returns today.
         this.account = null;
+        // 'standalone' for a single-asset dashboard, 'unified' for the app that
+        // serves every asset behind /api/<asset_type>/...
+        this.routing = 'standalone';
         this.listeners = [];
     }
 
@@ -419,6 +437,18 @@ class AssetConfigRegistry {
         this.get(assetType);  // throws on an unknown asset type
         this.assetType = assetType;
         this._notify();
+        return this;
+    }
+
+    /**
+     * Which app's URLs to build.
+     * @param {string} routing - 'standalone' or 'unified'
+     */
+    setRouting(routing) {
+        if (routing !== 'standalone' && routing !== 'unified') {
+            throw new Error(`Unknown routing: ${routing}`);
+        }
+        this.routing = routing;
         return this;
     }
 
@@ -469,10 +499,16 @@ class AssetConfigRegistry {
      */
     url(name, params = {}, assetType = null) {
         const config = this.get(assetType);
-        let path = config.endpoints[name];
-        if (!path) {
+
+        // An asset that serves an endpoint nowhere serves it in either app, so
+        // the standalone table stays the record of what exists
+        if (!config.endpoints[name]) {
             throw new Error(`Asset ${config.assetType} has no endpoint: ${name}`);
         }
+
+        let path = this.routing === 'unified'
+            ? `/api/${config.assetType}/${UNIFIED_PATHS[name]}`
+            : config.endpoints[name];
 
         Object.keys(params).forEach(key => {
             path = path.replace(`{${key}}`, encodeURIComponent(params[key]));
@@ -508,5 +544,6 @@ class AssetConfigRegistry {
     }
 }
 
+window.UNIFIED_PATHS = UNIFIED_PATHS;
 window.ASSET_CONFIGS = ASSET_CONFIGS;
 window.AssetConfig = new AssetConfigRegistry(ASSET_CONFIGS);
