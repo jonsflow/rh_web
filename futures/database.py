@@ -363,11 +363,15 @@ class FuturesDatabase:
 
         return [dict(zip(columns, row)) for row in rows]
 
-    def get_daily_pnl(self, start_date: str = None, end_date: str = None) -> Dict[str, Dict]:
+    def get_daily_pnl(self, start_date: str = None, end_date: str = None,
+                      account: str = None) -> Dict[str, Dict]:
         """
         Get daily P&L summary grouped by trade_date.
         Simply sums realized_pnl from all orders for each date.
         This matches Robinhood's Purchase and Sale Summary report.
+
+        `account` narrows to one account; without it every account is included,
+        which is what this returned before accounts were tracked.
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -390,6 +394,9 @@ class FuturesDatabase:
         if end_date:
             query += ' AND trade_date <= ?'
             params.append(end_date)
+        if account:
+            query += ' AND account_id = ?'
+            params.append(account)
 
         query += ' GROUP BY trade_date ORDER BY trade_date DESC'
 
@@ -411,16 +418,23 @@ class FuturesDatabase:
 
         return result
 
-    def get_orders_by_trade_date(self, trade_date: str) -> List[Dict]:
-        """Get all orders for a specific trade date"""
+    def get_orders_by_trade_date(self, trade_date: str, account: str = None) -> List[Dict]:
+        """Get all orders for a specific trade date, optionally one account's"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        query = '''
             SELECT * FROM futures_orders
             WHERE trade_date = ? AND order_state IN ('FILLED', 'PARTIALLY_FILLED_REST_CANCELLED')
-            ORDER BY execution_time
-        ''', (trade_date,))
+        '''
+        params = [trade_date]
+
+        if account:
+            query += ' AND account_id = ?'
+            params.append(account)
+
+        query += ' ORDER BY execution_time'
+        cursor.execute(query, params)
 
         rows = cursor.fetchall()
         columns = [description[0] for description in cursor.description]

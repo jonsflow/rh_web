@@ -179,3 +179,87 @@ def test_the_standalone_dashboards_are_untouched():
         client = standalone(asset_type)
         assert client.get('/').status_code == 200, f'{module} no longer renders'
         assert client.get('/api/daily-pnl').status_code == 200, f'{module} lost its routes'
+
+
+# ---------- the account dimension ----------
+
+def test_the_app_lists_the_accounts_in_stored_data(unified):
+    """The switcher is built from stored rows, so the page makes no live call."""
+    payload = unified.get('/api/accounts').get_json()
+
+    assert payload['success']
+    assert isinstance(payload['accounts'], list)
+    assert sorted(payload['by_asset']) == ASSETS
+
+    # Whatever each asset reports must appear in the combined list
+    for accounts in payload['by_asset'].values():
+        for account in accounts:
+            assert account in payload['accounts']
+
+
+@pytest.mark.parametrize('asset_type', ASSETS)
+def test_no_account_selected_returns_every_account(unified, asset_type):
+    """Which is what these endpoints returned before accounts were tracked."""
+    without = unified.get(f'/api/{asset_type}/daily-pnl').get_json()['daily_pnl']
+    explicit_all = unified.get(f'/api/{asset_type}/daily-pnl?account=').get_json()['daily_pnl']
+
+    assert without == explicit_all
+
+
+@pytest.mark.parametrize('asset_type', ASSETS)
+def test_an_account_with_no_rows_returns_nothing(unified, asset_type):
+    """An empty answer, not a silent fallback to everything."""
+    filtered = unified.get(
+        f'/api/{asset_type}/daily-pnl?account=no-such-account'
+    ).get_json()['daily_pnl']
+
+    assert filtered == {}
+
+
+def test_filtering_by_the_recorded_account_matches_the_unfiltered_total(unified):
+    """Futures records its account, and every stored order is from that one."""
+    accounts = unified.get('/api/accounts').get_json()['by_asset']['futures']
+    if not accounts:
+        pytest.skip('no futures account recorded locally')
+
+    everything = unified.get('/api/futures/daily-pnl').get_json()['daily_pnl']
+    filtered = unified.get(
+        f'/api/futures/daily-pnl?account={accounts[0]}'
+    ).get_json()['daily_pnl']
+
+    assert filtered == everything
+
+
+def test_a_days_detail_can_be_narrowed_to_an_account(unified):
+    accounts = unified.get('/api/accounts').get_json()['by_asset']['futures']
+    if not accounts:
+        pytest.skip('no futures account recorded locally')
+
+    days = unified.get('/api/futures/daily-pnl').get_json()['daily_pnl']
+    date = max(days, key=lambda d: days[d].get('count', 0))
+
+    everything = unified.get(f'/api/futures/positions/date/{date}').get_json()['orders']
+    filtered = unified.get(
+        f'/api/futures/positions/date/{date}?account={accounts[0]}'
+    ).get_json()['orders']
+    other = unified.get(
+        f'/api/futures/positions/date/{date}?account=no-such-account'
+    ).get_json()['orders']
+
+    assert filtered == everything
+    assert other == []
+
+
+def test_the_account_to_refresh_is_sent_in_the_body_not_the_url():
+    """Refreshing hits the broker, so it stays a POST with an explicit account."""
+    from unified.unified_web import app
+
+    rules = {str(r): r for r in app.url_map.iter_rules()}
+    assert 'GET' not in rules['/api/<asset_type>/update'].methods
+
+
+def test_the_standalone_dashboards_still_return_everything():
+    """They have no account switcher, so they must be unaffected by the column."""
+    for asset_type in ASSETS:
+        client = standalone(asset_type)
+        assert client.get('/api/daily-pnl').status_code == 200

@@ -29,13 +29,19 @@ class StocksDataFetcher:
                 print(f"Login failed: {str(login_error)}")
                 return False
 
-    def fetch_stock_orders(self) -> Dict:
-        """Fetch stock orders from Robinhood"""
+    def fetch_stock_orders(self, account_number: str = None) -> Dict:
+        """Fetch stock orders from Robinhood.
+
+        Without an account the broker answers for the primary one, which is why
+        every row stored before this argument existed came from that account
+        without saying so. Naming it makes the rows say which.
+        """
         try:
-            print("Fetching stock orders from Robinhood...")
+            target = f"account {account_number}" if account_number else "the primary account"
+            print(f"Fetching stock orders from Robinhood for {target}...")
 
             # Get all stock orders
-            all_orders = r.get_all_stock_orders()
+            all_orders = r.get_all_stock_orders(account_number=account_number)
 
             if not isinstance(all_orders, list):
                 raise ValueError(f"Expected list of orders, got {type(all_orders)}")
@@ -114,7 +120,9 @@ class StocksDataFetcher:
             print(f"Processed all {len(processed_orders)} orders")
 
             # Insert into database
-            inserted_count = self.db.insert_orders(processed_orders)
+            # Stamp the rows with the account they were fetched for
+            self.db.ensure_account_column()
+            inserted_count = self.db.insert_orders(processed_orders, account_number=account_number)
             print(f"Inserted {inserted_count} new orders (duplicates skipped)")
 
             return {
@@ -255,8 +263,13 @@ class StocksDataFetcher:
                 'traceback': traceback.format_exc()
             }
 
-    def update_data(self, username: str = None, password: str = None) -> Dict:
-        """Update the database with latest data"""
+    def update_data(self, username: str = None, password: str = None,
+                    account_number: str = None) -> Dict:
+        """Update the database with latest data.
+
+        `account_number` names the account to fetch; without it the broker
+        answers for the primary one, which is what has always happened.
+        """
         # Login first
         if not self.login_robinhood(username, password):
             return {
@@ -265,7 +278,7 @@ class StocksDataFetcher:
             }
 
         # Fetch and process data
-        fetch_result = self.fetch_stock_orders()
+        fetch_result = self.fetch_stock_orders(account_number=account_number)
 
         if fetch_result['success']:
             # Return processed data

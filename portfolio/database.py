@@ -86,8 +86,12 @@ class OptionsDatabase:
         conn.close()
         return result[0] if result and result[0] else None
     
-    def insert_orders(self, orders: List[Dict]) -> int:
-        """Insert new orders into the database, returning count of inserted orders"""
+    def insert_orders(self, orders: List[Dict], account_number: str = None) -> int:
+        """Insert new orders, returning count of inserted orders.
+
+        `account_number` is the account the orders were fetched for, stamped on
+        each row. Rows stored before the column existed keep a null account.
+        """
         if not orders:
             return 0
             
@@ -127,12 +131,12 @@ class OptionsDatabase:
                     INSERT OR IGNORE INTO option_orders 
                     (robinhood_id, symbol, created_at, position_effect, expiration_date, 
                      strike_price, price, quantity, premium, strategy, direction, 
-                     option_type, option_ids, raw_data)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     option_type, option_ids, raw_data, account_number)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     robinhood_id, symbol, created_at, position_effect, expiration_date,
                     strike_price, price, quantity, premium, strategy, direction,
-                    option_type, option_ids, json.dumps(order)
+                    option_type, option_ids, json.dumps(order), account_number
                 ))
                 
                 if cursor.rowcount > 0:
@@ -147,6 +151,13 @@ class OptionsDatabase:
         
         return inserted_count
     
+    def ensure_account_column(self):
+        """Give the order and position tables their account column."""
+        from shared.accounts import ensure_account_column
+
+        ensure_account_column(self.db_path, 'option_orders')
+        ensure_account_column(self.db_path, 'positions')
+
     def rebuild_positions(self):
         """Rebuild the positions table from option_orders using the service layer"""
         from services.option_service import OptionService

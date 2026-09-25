@@ -193,8 +193,13 @@ class DataRepository:
         conn.close()
         return results
     
-    def get_daily_pnl_data(self, start_date: str = None, end_date: str = None) -> List[DailyPnLSummary]:
-        """Get daily P&L summary data for calendar view"""
+    def get_daily_pnl_data(self, start_date: str = None, end_date: str = None,
+                           account: str = None) -> List[DailyPnLSummary]:
+        """Get daily P&L summary data for calendar view.
+
+        `account` narrows to one account; without it every account is included,
+        which is what this returned before accounts were tracked.
+        """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -214,7 +219,10 @@ class DataRepository:
         if end_date:
             query += ' AND DATE(close_date) <= ?'
             params.append(end_date)
-            
+        if account:
+            query += ' AND account_number = ?'
+            params.append(account)
+
         query += ' GROUP BY DATE(close_date) ORDER BY close_date DESC'
         
         cursor.execute(query, params)

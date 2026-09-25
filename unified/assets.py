@@ -11,7 +11,7 @@ the standalone dashboard calls, so the numbers are the numbers those dashboards
 already produce.
 """
 
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 
 class AssetHandlers:
@@ -27,11 +27,12 @@ class AssetHandlers:
         asset_type: str,
         label: str,
         data: Callable[[], Dict[str, Any]],
-        update: Callable[[bool], Dict[str, Any]],
-        daily_pnl: Callable[[Optional[str], Optional[str]], Any],
-        positions_by_date: Callable[[str], Dict[str, Any]],
-        daily_summary: Optional[Callable[[str], Any]] = None,
+        update: Callable[..., Dict[str, Any]],
+        daily_pnl: Callable[..., Any],
+        positions_by_date: Callable[..., Dict[str, Any]],
+        daily_summary: Optional[Callable[..., Any]] = None,
         all_trading_dates: Optional[Callable[[], Any]] = None,
+        accounts: Optional[Callable[[], List[str]]] = None,
     ):
         self.asset_type = asset_type
         self.label = label
@@ -41,6 +42,7 @@ class AssetHandlers:
         self.positions_by_date = positions_by_date
         self.daily_summary = daily_summary
         self.all_trading_dates = all_trading_dates
+        self.accounts = accounts
 
     def supports(self, operation: str) -> bool:
         return getattr(self, operation, None) is not None
@@ -48,6 +50,7 @@ class AssetHandlers:
 
 def _options_handlers():
     from portfolio.data_fetcher import SmartDataFetcher
+    from shared.accounts import accounts_in
 
     fetcher = SmartDataFetcher()
 
@@ -63,22 +66,29 @@ def _options_handlers():
             'all_orders': result['all_orders'],
         }
 
-    def positions_by_date(date):
+    def positions_by_date(date, account=None):
         positions = fetcher.option_service.get_positions_by_date(date)
-        return {'date': date, 'positions': [p.to_dict() for p in positions]}
+        rows = [p.to_dict() for p in positions]
+        if account:
+            rows = [row for row in rows if row.get('account_number') == account]
+        return {'date': date, 'positions': rows}
 
     return AssetHandlers(
         asset_type='options',
         label='Options',
         data=data,
-        update=lambda force: fetcher.update_data(force_refresh=force),
-        daily_pnl=lambda start, end: fetcher.option_service.get_daily_pnl_summary(start, end),
+        update=lambda force, account=None:
+            fetcher.update_data(force_full_refresh=force, account_number=account),
+        daily_pnl=lambda start, end, account=None:
+            fetcher.option_service.get_daily_pnl_summary(start, end, account),
         positions_by_date=positions_by_date,
+        accounts=lambda: accounts_in(fetcher.db.db_path, 'option_orders'),
     )
 
 
 def _stocks_handlers():
     from stocks.data_fetcher import StocksDataFetcher
+    from shared.accounts import accounts_in
 
     fetcher = StocksDataFetcher()
 
@@ -88,23 +98,25 @@ def _stocks_handlers():
         # this one, through its own endpoint
         return fetcher.get_processed_data(include_open_positions=False)
 
-    def positions_by_date(date):
-        return {'date': date, 'orders': fetcher.db.get_orders_by_trade_date(date)}
+    def positions_by_date(date, account=None):
+        return {'date': date, 'orders': fetcher.db.get_orders_by_trade_date(date, account)}
 
     return AssetHandlers(
         asset_type='stocks',
         label='Stocks',
         data=data,
-        update=lambda force: fetcher.update_data(),
-        daily_pnl=lambda start, end: fetcher.db.get_daily_pnl(start, end),
+        update=lambda force, account=None: fetcher.update_data(account_number=account),
+        daily_pnl=lambda start, end, account=None: fetcher.db.get_daily_pnl(start, end, account),
         positions_by_date=positions_by_date,
-        daily_summary=lambda date: fetcher.db.get_daily_summary(date),
+        daily_summary=lambda date, account=None: fetcher.db.get_daily_summary(date),
         all_trading_dates=lambda: fetcher.db.get_all_trading_dates(),
+        accounts=lambda: accounts_in(fetcher.db.db_path, 'stock_orders'),
     )
 
 
 def _futures_handlers():
     from futures.data_fetcher import FuturesDataFetcher
+    from shared.accounts import accounts_in
 
     fetcher = FuturesDataFetcher()
 
@@ -119,17 +131,20 @@ def _futures_handlers():
             'summary': result['summary'],
         }
 
-    def positions_by_date(date):
-        return {'date': date, 'orders': fetcher.db.get_orders_by_trade_date(date)}
+    def positions_by_date(date, account=None):
+        return {'date': date, 'orders': fetcher.db.get_orders_by_trade_date(date, account)}
 
     return AssetHandlers(
         asset_type='futures',
         label='Futures',
         data=data,
-        update=lambda force: fetcher.update_data(),
-        daily_pnl=lambda start, end: fetcher.db.get_daily_pnl(start, end),
+        # Futures resolves its own account from the broker
+        update=lambda force, account=None: fetcher.update_data(),
+        daily_pnl=lambda start, end, account=None: fetcher.db.get_daily_pnl(start, end, account),
         positions_by_date=positions_by_date,
-        daily_summary=lambda date: fetcher.db.get_daily_summary(date),
+        daily_summary=lambda date, account=None: fetcher.db.get_daily_summary(date),
+        # Futures has recorded its account since it was built
+        accounts=lambda: accounts_in(fetcher.db.db_path, 'futures_orders', 'account_id'),
     )
 
 
@@ -161,3 +176,17 @@ def get_handlers(asset_type: str) -> Optional[AssetHandlers]:
 def reset():
     """Drop the cached handlers. For tests."""
     _CACHE.clear()
+
+
+def all_accounts() -> Dict[str, List[str]]:
+    """Which accounts appear in each asset's stored rows.
+
+    Read from what is stored rather than from the broker, so the switcher can
+    be built without a live call. An asset whose rows predate the account
+    column contributes nothing, and the view falls back to every account.
+    """
+    found = {}
+    for asset_type in asset_types():
+        handlers = get_handlers(asset_type)
+        found[asset_type] = handlers.accounts() if handlers.supports('accounts') else []
+    return found

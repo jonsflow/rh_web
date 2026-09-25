@@ -15,7 +15,7 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from shared.journals_api import journals_blueprint
 from shared.web_assets import shared_static_blueprint
-from unified.assets import asset_types, get_handlers
+from unified.assets import all_accounts, asset_types, get_handlers
 
 app = Flask(__name__, static_url_path='/static', static_folder='static',
             template_folder='templates')
@@ -52,6 +52,19 @@ def _failed(operation, error):
 def index():
     """Render the main page."""
     return render_template('index.html')
+
+
+@app.route('/api/accounts')
+def list_accounts():
+    """Accounts the stored data knows about, for the account switcher.
+
+    Read from stored rows, not from the broker, so opening the page makes no
+    live call. Assets fetched before the account was recorded contribute
+    nothing, and selecting no account means every account, as before.
+    """
+    per_asset = all_accounts()
+    every = sorted({account for accounts in per_asset.values() for account in accounts})
+    return jsonify({'success': True, 'accounts': every, 'by_asset': per_asset})
 
 
 @app.route('/api/assets')
@@ -97,7 +110,9 @@ def update_data(asset_type):
 
     payload = request.get_json(silent=True) or {}
     try:
-        result = handlers.update(bool(payload.get('force_refresh')))
+        # Fetching for one account is the point of naming it: without one the
+        # broker answers for the primary account
+        result = handlers.update(bool(payload.get('force_refresh')), payload.get('account'))
         if result and result.get('error'):
             return jsonify({'error': result.get('message', 'Failed to update')}), 500
         return jsonify(result if result is not None else {'success': True})
@@ -113,7 +128,11 @@ def get_daily_pnl(asset_type):
         return missing
 
     try:
-        daily = handlers.daily_pnl(request.args.get('start_date'), request.args.get('end_date'))
+        daily = handlers.daily_pnl(
+            request.args.get('start_date'),
+            request.args.get('end_date'),
+            request.args.get('account'),
+        )
         return jsonify({'success': True, 'daily_pnl': daily})
     except Exception as error:
         return _failed(f'fetch {asset_type} daily P&L', error)
@@ -131,7 +150,7 @@ def get_positions_by_date(asset_type, date):
         return missing
 
     try:
-        result = handlers.positions_by_date(date)
+        result = handlers.positions_by_date(date, request.args.get('account'))
         return jsonify({'success': True, **result})
     except Exception as error:
         return _failed(f'fetch {asset_type} positions for {date}', error)
@@ -148,7 +167,8 @@ def get_daily_summary(asset_type, date):
         return jsonify({'error': f'{asset_type} has no daily summary'}), 404
 
     try:
-        return jsonify({'success': True, 'summary': handlers.daily_summary(date)})
+        return jsonify({'success': True,
+                        'summary': handlers.daily_summary(date, request.args.get('account'))})
     except Exception as error:
         return _failed(f'fetch {asset_type} summary for {date}', error)
 

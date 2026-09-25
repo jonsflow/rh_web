@@ -198,9 +198,10 @@ class OptionService:
         """Get all orders formatted for display"""
         return self.repository.get_all_orders_for_display()
     
-    def get_daily_pnl_summary(self, start_date: str = None, end_date: str = None) -> Dict[str, Dict]:
-        """Get daily P&L summary for calendar view"""
-        daily_summaries = self.repository.get_daily_pnl_data(start_date, end_date)
+    def get_daily_pnl_summary(self, start_date: str = None, end_date: str = None,
+                              account: str = None) -> Dict[str, Dict]:
+        """Get daily P&L summary for calendar view, optionally one account's"""
+        daily_summaries = self.repository.get_daily_pnl_data(start_date, end_date, account)
         
         # Convert to dictionary format expected by frontend
         daily_data = {}

@@ -98,13 +98,20 @@ class SmartDataFetcher:
         
         return default_start.strftime('%Y-%m-%d')
     
-    def fetch_option_orders(self, start_date: str = None, force_full_refresh: bool = False) -> Dict:
-        """Fetch all option orders from Robinhood"""
+    def fetch_option_orders(self, start_date: str = None, force_full_refresh: bool = False,
+                            account_number: str = None) -> Dict:
+        """Fetch all option orders from Robinhood.
+
+        Without an account the broker answers for the primary one, which is why
+        every row stored before this argument existed came from that account
+        without saying so. Naming it makes the rows say which.
+        """
         try:
-            print("Fetching all option orders from Robinhood...")
+            target = f"account {account_number}" if account_number else "the primary account"
+            print(f"Fetching all option orders from Robinhood for {target}...")
 
             # Get all option orders (no start_date parameter to get all historical data)
-            all_orders = r.orders.get_all_option_orders()
+            all_orders = r.orders.get_all_option_orders(account_number=account_number)
             
             if not isinstance(all_orders, list):
                 raise ValueError(f"Expected list of orders, got {type(all_orders)}")
@@ -114,8 +121,9 @@ class SmartDataFetcher:
             
             print(f"Found {len(filled_orders)} filled orders")
             
-            # Insert new orders into database
-            inserted_count = self.db.insert_orders(filled_orders)
+            # Insert new orders into database, stamped with the account
+            self.db.ensure_account_column()
+            inserted_count = self.db.insert_orders(filled_orders, account_number=account_number)
             print(f"Inserted {inserted_count} new orders")
             
             # Rebuild positions table
@@ -150,8 +158,13 @@ class SmartDataFetcher:
                 'message': 'Failed to retrieve processed data from service layer'
             }
     
-    def update_data(self, username: str = None, password: str = None, force_full_refresh: bool = False) -> Dict:
-        """Update the database with latest data"""
+    def update_data(self, username: str = None, password: str = None,
+                    force_full_refresh: bool = False, account_number: str = None) -> Dict:
+        """Update the database with latest data.
+
+        `account_number` names the account to fetch; without it the broker
+        answers for the primary one, which is what has always happened.
+        """
         # Login first
         if not self.login_robinhood(username, password):
             return {
@@ -160,7 +173,8 @@ class SmartDataFetcher:
             }
         
         # Fetch and process data
-        fetch_result = self.fetch_option_orders(force_full_refresh=force_full_refresh)
+        fetch_result = self.fetch_option_orders(force_full_refresh=force_full_refresh,
+                                                account_number=account_number)
         
         if fetch_result['success']:
             # Return processed data

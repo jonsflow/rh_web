@@ -53,8 +53,18 @@ class StocksDatabase:
         conn.close()
         return result[0] if result and result[0] else None
 
-    def insert_orders(self, orders: List[Dict]) -> int:
-        """Insert new orders into the database, returning count of inserted orders"""
+    def ensure_account_column(self):
+        """Give the orders table its account column."""
+        from shared.accounts import ensure_account_column
+
+        ensure_account_column(self.db_path, 'stock_orders')
+
+    def insert_orders(self, orders: List[Dict], account_number: str = None) -> int:
+        """Insert new orders, returning count of inserted orders.
+
+        `account_number` is the account the orders were fetched for, stamped on
+        each row. Rows stored before the column existed keep a null account.
+        """
         if not orders:
             return 0
 
@@ -68,8 +78,8 @@ class StocksDatabase:
                     INSERT OR IGNORE INTO stock_orders (
                         order_id, symbol, side, quantity, average_price,
                         total_amount, fees, state, created_at, last_transaction_at,
-                        trade_date, raw_data
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        trade_date, raw_data, account_number
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     order.get('order_id'),
                     order.get('symbol'),
@@ -82,7 +92,8 @@ class StocksDatabase:
                     order.get('created_at'),
                     order.get('last_transaction_at'),
                     order.get('trade_date'),
-                    json.dumps(order.get('raw_data', {}))
+                    json.dumps(order.get('raw_data', {})),
+                    account_number
                 ))
                 if cursor.rowcount > 0:
                     inserted_count += 1
@@ -125,21 +136,32 @@ class StocksDatabase:
         conn.close()
         return orders
 
-    def get_closed_positions(self) -> List[Dict]:
+    def get_closed_positions(self, account: str = None) -> List[Dict]:
         """
         Get all closed positions with FIFO P&L calculation.
         Returns list of closed position pairs.
+
+        `account` narrows the orders that are matched. Buys and sells are paired
+        within one account, never across two, since they are different accounts'
+        shares.
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         # Get all orders by symbol
-        cursor.execute('''
+        query = '''
             SELECT symbol, side, quantity, total_amount, average_price, trade_date, last_transaction_at
             FROM stock_orders
             WHERE state = 'filled'
-            ORDER BY symbol, last_transaction_at
-        ''')
+        '''
+        params = []
+
+        if account:
+            query += ' AND account_number = ?'
+            params.append(account)
+
+        query += ' ORDER BY symbol, last_transaction_at'
+        cursor.execute(query, params)
 
         # Group by symbol
         from collections import defaultdict
@@ -218,14 +240,17 @@ class StocksDatabase:
         closed = self.get_closed_positions()
         return sum(pos['pnl'] for pos in closed)
 
-    def get_daily_pnl(self, start_date=None, end_date=None) -> Dict:
+    def get_daily_pnl(self, start_date=None, end_date=None, account: str = None) -> Dict:
         """
         Get daily realized P&L summary.
         Only counts P&L from properly FIFO-matched closed positions.
         P&L is attributed to the sell date.
+
+        `account` narrows to one account; without it every account is included,
+        which is what this returned before accounts were tracked.
         """
         # Get all closed positions (FIFO matched)
-        closed_positions = self.get_closed_positions()
+        closed_positions = self.get_closed_positions(account)
 
         # Group by sell_date
         daily_pnl = {}
@@ -273,18 +298,25 @@ class StocksDatabase:
         conn.close()
         return dates
 
-    def get_orders_by_trade_date(self, trade_date: str) -> List[Dict]:
-        """Get all orders for a specific trade date"""
+    def get_orders_by_trade_date(self, trade_date: str, account: str = None) -> List[Dict]:
+        """Get all orders for a specific trade date, optionally one account's"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        query = '''
             SELECT order_id, symbol, side, quantity, average_price,
                    total_amount, fees, last_transaction_at
             FROM stock_orders
             WHERE trade_date = ? AND state = 'filled'
-            ORDER BY last_transaction_at
-        ''', (trade_date,))
+        '''
+        params = [trade_date]
+
+        if account:
+            query += ' AND account_number = ?'
+            params.append(account)
+
+        query += ' ORDER BY last_transaction_at'
+        cursor.execute(query, params)
 
         orders = []
         for row in cursor.fetchall():

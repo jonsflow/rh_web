@@ -12,7 +12,8 @@
         assetType: null,
         account: null,
         data: null,
-        assets: []
+        assets: [],
+        accounts: []
     };
 
     const els = {};
@@ -46,6 +47,29 @@
         els.loading.style.display = 'none';
         els.error.style.display = 'none';
         els.content.style.display = 'block';
+    }
+
+    /** Accounts the stored data knows about, for the account switcher. */
+    async function loadAccounts() {
+        const response = await fetch('/api/accounts');
+        const payload = await response.json();
+        if (!payload.success) throw new Error(payload.error || 'Failed to list accounts');
+        return payload;
+    }
+
+    function renderAccountSwitcher(accounts) {
+        const options = ['<option value="">All accounts</option>'];
+        accounts.forEach(account => {
+            options.push(`<option value="${account}">${account}</option>`);
+        });
+        els.accountSelect.innerHTML = options.join('');
+        els.accountSelect.value = state.account || '';
+
+        // Nothing to choose between until orders record an account
+        els.accountSelect.disabled = accounts.length === 0;
+        els.accountSelect.title = accounts.length === 0
+            ? 'No accounts recorded yet; refresh an asset to record one'
+            : '';
     }
 
     /** Which assets the server serves, and their labels. */
@@ -178,6 +202,9 @@
 
         try {
             state.assets = await loadAssets();
+            const accounts = await loadAccounts();
+            state.accounts = accounts.accounts;
+            renderAccountSwitcher(state.accounts);
         } catch (error) {
             showError(`Could not reach the server: ${error.message}`);
             return;
@@ -200,7 +227,10 @@
         await loadAndRender();
     }
 
-    window.unifiedDashboard = { state, selectAsset, selectAccount, switchTab, start };
+    window.unifiedDashboard = {
+        state, selectAsset, selectAccount, switchTab, start,
+        renderAccountSwitcher, loadAccounts
+    };
 
     document.addEventListener('DOMContentLoaded', start);
 })();
