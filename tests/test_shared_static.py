@@ -22,10 +22,12 @@ SHARED_JS = [
     'asset-config.js',
     'calendar.js',
     'components/by-symbol.js',
+    'components/journal-panel.js',
     'components/position-table.js',
     'components/summary-card.js',
     'services/api-service.js',
     'services/data-manager.js',
+    'services/journal-service.js',
     'sorting.js',
 ]
 

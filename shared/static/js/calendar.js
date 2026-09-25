@@ -128,6 +128,9 @@ class CalendarManager {
         this.calendar = null;
         this.dailyPnlData = {};
         this.daySummaries = {};
+        this.journalCounts = {};
+        this.journalPanel = null;
+        this._journals = options.journals || null;
         this.assetType = options.assetType || null;
         this._config = options.config || null;
         this._api = options.api || null;
@@ -229,6 +232,24 @@ class CalendarManager {
         return summaries;
     }
 
+    /**
+     * How many journal entries each day has, so days carry a note marker.
+     *
+     * Never fatal: a day without its marker is a smaller problem than a
+     * calendar that fails to draw.
+     */
+    async loadJournalCounts(startDate, endDate) {
+        const service = this._journals || window.JournalService;
+        if (!service) return {};
+
+        try {
+            return await service.countsByDate(startDate, endDate);
+        } catch (error) {
+            console.error('Failed to load journal counts:', error);
+            return {};
+        }
+    }
+
     updateMonthlyPnlSummary(dateInfo) {
         // Get the actual month/year being displayed (center of the view)
         const viewStart = new Date(dateInfo.start);
@@ -284,6 +305,8 @@ class CalendarManager {
             ? await this.loadDaySummaries(startStr, endStr)
             : {};
 
+        this.journalCounts = await this.loadJournalCounts(startStr, endStr);
+
         const dates = tracksDayStates
             ? new Set([...Object.keys(this.dailyPnlData), ...Object.keys(this.daySummaries)])
             : new Set(Object.keys(this.dailyPnlData));
@@ -296,7 +319,12 @@ class CalendarManager {
             const count = dayData.count || 0;
 
             let color = pnl >= 0 ? DAY_COLORS.profit : DAY_COLORS.loss;
-            const extendedProps = { pnl, count, details: dayData.details };
+            const extendedProps = {
+                pnl,
+                count,
+                details: dayData.details,
+                journals: this.journalCounts[date] || 0
+            };
 
             if (tracksDayStates) {
                 const summary = this.daySummaries[date] || { positions_closed: 0, positions_opened: 0 };
@@ -357,10 +385,14 @@ class CalendarManager {
     renderEventContent(eventInfo) {
         const props = eventInfo.event.extendedProps;
 
+        const marker = props.journals > 0
+            ? `<span class="pnl-journal-marker" title="${props.journals} journal note(s)">&#9998;</span>`
+            : '';
+
         return {
             html: `
                 <div class="pnl-event">
-                    <div class="pnl-amount">${money(props.pnl)}</div>
+                    <div class="pnl-amount">${money(props.pnl)}${marker}</div>
                     <div class="pnl-count">${this.dayLabel(props)}</div>
                 </div>
             `
@@ -485,11 +517,32 @@ class CalendarManager {
                 .replace('{count}', count);
 
             body.innerHTML = this.renderDetailBody(date, pnl, count, sources);
+            await this.mountJournal(date, body);
             modal.style.display = 'block';
         } catch (error) {
             console.error('Error loading day details:', error);
             alert('Error loading day details');
         }
+    }
+
+    /**
+     * Add the day's journal below the tables.
+     *
+     * Appended rather than built into the detail spec: the notes are about the
+     * day, not about any one asset's tables.
+     */
+    async mountJournal(date, body) {
+        if (typeof window.JournalPanel === 'undefined') return;
+
+        if (!this.journalPanel) {
+            this.journalPanel = new window.JournalPanel();
+        }
+
+        const container = document.createElement('div');
+        body.appendChild(container);
+
+        await this.journalPanel.load(date);
+        this.journalPanel.mount(container);
     }
 
     setupModal() {

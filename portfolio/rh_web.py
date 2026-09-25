@@ -3,6 +3,7 @@ import traceback
 from flask import Flask, render_template, jsonify, request, url_for, send_from_directory, redirect
 from portfolio.data_fetcher import SmartDataFetcher
 from shared.web_assets import shared_static_blueprint
+from shared.journals_api import journals_blueprint
 
 # Update the Flask app initialization to serve static files
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
@@ -17,6 +18,9 @@ def send_static(path):
 
 # Frontend files shared with the other dashboards, served at /shared/static/...
 app.register_blueprint(shared_static_blueprint())
+
+# Trade journal, shared by every dashboard
+app.register_blueprint(journals_blueprint())
 
 def fetch_and_process_option_orders():
     """Fetch and process option orders using the normalized database approach"""
