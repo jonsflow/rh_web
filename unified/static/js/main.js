@@ -58,18 +58,27 @@
     }
 
     function renderAccountSwitcher(accounts) {
-        const options = ['<option value="">All accounts</option>'];
-        accounts.forEach(account => {
-            options.push(`<option value="${account}">${account}</option>`);
-        });
-        els.accountSelect.innerHTML = options.join('');
-        els.accountSelect.value = state.account || '';
+        // An account is selected, never left unset: one account's figures are
+        // the only figures that mean anything, so there is no "all accounts"
+        els.accountSelect.innerHTML = accounts.map(account => `
+            <option value="${account.account_key}">${account.label}</option>
+        `).join('');
 
-        // Nothing to choose between until orders record an account
-        els.accountSelect.disabled = accounts.length === 0;
-        els.accountSelect.title = accounts.length === 0
-            ? 'No accounts recorded yet; refresh an asset to record one'
-            : '';
+        if (accounts.length === 0) {
+            els.accountSelect.disabled = true;
+            els.accountSelect.title = 'No accounts recorded yet';
+            return;
+        }
+
+        els.accountSelect.disabled = false;
+        els.accountSelect.value = state.account || accounts[0].account_key;
+        state.account = els.accountSelect.value;
+    }
+
+    /** Whether the selected account exists for an asset. */
+    function accountHas(assetType) {
+        const account = state.accounts.find(a => a.account_key === state.account);
+        return Boolean(account && account.identifiers[assetType]);
     }
 
     /** Which assets the server serves, and their labels. */
@@ -100,13 +109,19 @@
     }
 
     async function selectAccount(account) {
-        state.account = account || null;
-        window.AssetConfig.setAccount(state.account);
+        if (!account) return;  // the switcher never offers an empty selection
+        state.account = account;
+        window.AssetConfig.setAccount(account);
         await loadAndRender();
     }
 
     /** Fetch the selected asset and account, then render every view. */
     async function loadAndRender() {
+        if (!accountHas(state.assetType)) {
+            showError(`This account has no ${state.assetType} account recorded.`);
+            return;
+        }
+
         showLoading(`Loading ${state.assetType}...`);
 
         try {
@@ -202,11 +217,16 @@
 
         try {
             state.assets = await loadAssets();
-            const accounts = await loadAccounts();
-            state.accounts = accounts.accounts;
+            state.accounts = (await loadAccounts()).accounts;
             renderAccountSwitcher(state.accounts);
         } catch (error) {
             showError(`Could not reach the server: ${error.message}`);
+            return;
+        }
+
+        if (state.accounts.length === 0) {
+            showError('No accounts are recorded yet. Refresh an asset with an '
+                    + 'account selected to record one.');
             return;
         }
 
@@ -221,6 +241,7 @@
 
         els.accountSelect.addEventListener('change', () => selectAccount(els.accountSelect.value));
 
+        window.AssetConfig.setAccount(state.account);
         state.assetType = state.assets[0].asset_type;
         window.AssetConfig.setAssetType(state.assetType);
         renderAssetSwitcher();
@@ -229,7 +250,7 @@
 
     window.unifiedDashboard = {
         state, selectAsset, selectAccount, switchTab, start,
-        renderAccountSwitcher, loadAccounts
+        renderAccountSwitcher, loadAccounts, accountHas
     };
 
     document.addEventListener('DOMContentLoaded', start);

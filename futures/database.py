@@ -62,6 +62,7 @@ class FuturesDatabase:
                 realized_pnl_without_fees REAL,
                 total_fees REAL,
                 status TEXT,
+                account_id TEXT,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
@@ -225,10 +226,11 @@ class FuturesDatabase:
         # Get all filled orders grouped by contract
         cursor.execute('''
             SELECT contract_id, symbol, display_symbol, order_side, quantity, average_price,
-                   position_effect, created_at, realized_pnl, realized_pnl_without_fees, total_fee
+                   position_effect, created_at, realized_pnl, realized_pnl_without_fees,
+                   total_fee, account_id
             FROM futures_orders
             WHERE order_state = 'FILLED'
-            ORDER BY contract_id, created_at
+            ORDER BY account_id, contract_id, created_at
         ''')
 
         orders = cursor.fetchall()
@@ -237,15 +239,19 @@ class FuturesDatabase:
         positions = {}
 
         for order in orders:
-            contract_id, symbol, display_symbol, order_side, qty, price, pos_effect, created_at, pnl, pnl_no_fees, fees = order
+            (contract_id, symbol, display_symbol, order_side, qty, price, pos_effect,
+             created_at, pnl, pnl_no_fees, fees, account_id) = order
 
-            key = contract_id
+            # Keyed by account as well as contract: one account's opening order
+            # cannot be closed by another's, so they are separate positions
+            key = (account_id, contract_id)
 
             if key not in positions:
                 positions[key] = {
                     'contract_id': contract_id,
                     'symbol': symbol,
                     'display_symbol': display_symbol,
+                    'account_id': account_id,
                     'open_orders': [],
                     'close_orders': []
                 }
@@ -295,12 +301,12 @@ class FuturesDatabase:
                     INSERT OR REPLACE INTO futures_positions
                     (position_key, contract_id, symbol, display_symbol, open_date, close_date,
                      quantity, open_price, close_price, realized_pnl, realized_pnl_without_fees,
-                     total_fees, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     total_fees, status, account_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     position_key, pos_data['contract_id'], pos_data['symbol'], pos_data['display_symbol'],
                     open_date, close_date, total_qty, avg_open_price, avg_close_price,
-                    realized_pnl, realized_pnl_no_fees, total_fees, status
+                    realized_pnl, realized_pnl_no_fees, total_fees, status, pos_data['account_id']
                 ))
 
         conn.commit()
@@ -319,19 +325,23 @@ class FuturesDatabase:
 
         return [dict(zip(columns, row)) for row in rows]
 
-    def get_positions_by_status(self, status: str) -> List[Dict]:
+    def get_positions_by_status(self, status: str, account: str = None) -> List[Dict]:
         """
         Get positions filtered by status.
         For 'closed' status, returns closing orders (where realized_pnl_without_fees != 0).
         For other statuses, uses the futures_positions table.
+
+        Every row carries its account_id, so the caller can report one account.
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
+        params = []
+
         if status == 'closed':
             # For closed positions, return orders where realized_pnl_without_fees != 0
             # These are the closing orders that have actual P&L
-            cursor.execute('''
+            query = '''
                 SELECT
                     order_id,
                     contract_id,
@@ -346,15 +356,26 @@ class FuturesDatabase:
                     total_fee,
                     created_at as close_date,
                     execution_time,
-                    trade_date
+                    trade_date,
+                    account_id
                 FROM futures_orders
                 WHERE order_state IN ('FILLED', 'PARTIALLY_FILLED_REST_CANCELLED')
                 AND realized_pnl_without_fees != 0
-                ORDER BY COALESCE(execution_time, created_at) DESC
-            ''')
+            '''
+            if account:
+                query += ' AND account_id = ?'
+                params.append(account)
+            query += ' ORDER BY COALESCE(execution_time, created_at) DESC'
+            cursor.execute(query, params)
         else:
             # For other statuses, use the positions table
-            cursor.execute('SELECT * FROM futures_positions WHERE status = ? ORDER BY open_date DESC', (status,))
+            query = 'SELECT * FROM futures_positions WHERE status = ?'
+            params.append(status)
+            if account:
+                query += ' AND account_id = ?'
+                params.append(account)
+            query += ' ORDER BY open_date DESC'
+            cursor.execute(query, params)
 
         rows = cursor.fetchall()
         columns = [description[0] for description in cursor.description]

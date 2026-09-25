@@ -254,3 +254,70 @@ def test_stocks_pairs_buys_and_sells_within_one_account(tmp_path):
     # And the daily view agrees
     assert db.get_daily_pnl(account='A')['2026-03-05']['pnl'] == 100.0
     assert db.get_daily_pnl(account='B') == {}
+
+    # Reading without naming an account must not pair across them either: the
+    # account is part of the grouping key, not a filter applied on top of it
+    unfiltered = db.get_closed_positions()
+    assert len(unfiltered) == 1, 'B\'s buy was matched against A\'s sell'
+    assert unfiltered[0]['account_number'] == 'A'
+    assert unfiltered[0]['pnl'] == 100.0
+
+
+def test_futures_positions_are_keyed_by_account_as_well_as_contract(tmp_path):
+    """One account's opening order cannot be closed by another's.
+
+    Futures positions are derived by pairing opening orders with closing ones.
+    Keying on the contract alone would pair across accounts once more than one
+    trades the same contract.
+    """
+    from futures.database import FuturesDatabase
+
+    path = str(tmp_path / 'futures.db')
+    db = FuturesDatabase(path)
+
+    conn = sqlite3.connect(path)
+    conn.executemany(
+        'INSERT INTO futures_orders (order_id, account_id, contract_id, symbol, '
+        'display_symbol, order_side, quantity, filled_quantity, order_state, '
+        'average_price, position_effect, realized_pnl, realized_pnl_without_fees, '
+        'total_fee, created_at, trade_date) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+            # Account A opens and closes the same contract
+            ('1', 'A', 'ESZ5', 'ES', 'ESZ5', 'BUY', 1, 1, 'FILLED', 5000.0,
+             'OPENING', -1.0, 0.0, 1.0, '2026-03-02T15:00:00Z', '2026-03-02'),
+            ('2', 'A', 'ESZ5', 'ES', 'ESZ5', 'SELL', 1, 1, 'FILLED', 5010.0,
+             'CLOSING', 49.0, 50.0, 1.0, '2026-03-03T15:00:00Z', '2026-03-03'),
+            # Account B only opens it
+            ('3', 'B', 'ESZ5', 'ES', 'ESZ5', 'BUY', 1, 1, 'FILLED', 5100.0,
+             'OPENING', -1.0, 0.0, 1.0, '2026-03-04T15:00:00Z', '2026-03-04'),
+        ])
+    conn.commit()
+    conn.close()
+
+    db.rebuild_positions()
+
+    a_positions = db.get_positions_by_status('closed', 'A')
+    b_positions = db.get_positions_by_status('closed', 'B')
+
+    assert len(a_positions) == 1
+    assert a_positions[0]['realized_pnl'] == 49.0
+    assert b_positions == [], "account B's open position must not read as closed"
+
+    # Two positions exist, one per account, not one shared
+    conn = sqlite3.connect(path)
+    rows = conn.execute('SELECT account_id, status FROM futures_positions '
+                        'ORDER BY account_id').fetchall()
+    conn.close()
+    assert rows == [('A', 'closed'), ('B', 'open')]
+
+
+def test_every_row_a_reader_filters_on_carries_its_account():
+    """A filter on a field the rows do not have silently returns nothing."""
+    from futures.database import FuturesDatabase
+
+    closed = FuturesDatabase('futures.db').get_positions_by_status('closed')
+    if not closed:
+        pytest.skip('no futures data stored locally')
+
+    assert 'account_id' in closed[0], 'closed positions must say which account'

@@ -110,3 +110,108 @@ def account_filter(account: Optional[str], column: str = ACCOUNT_COLUMN):
     if not account:
         return '', []
     return f'{column} = ?', [account]
+
+
+# ---------------------------------------------------------------------------
+# The accounts themselves
+# ---------------------------------------------------------------------------
+#
+# One account is one account, but the broker names it differently per asset:
+# options and stocks use its account_number, futures a separate UUID. Selecting
+# an account and then switching asset only works if that mapping is recorded, so
+# it is stored rather than guessed.
+#
+# Populating it needs the broker (the account list, and the futures account id),
+# which is a live call and therefore the user's to run. Everything here reads
+# what has been stored.
+
+
+class AccountRegistry:
+    """The accounts available to select, and each asset's name for them."""
+
+    def __init__(self, db_path: str = "accounts.db"):
+        self.db_path = db_path
+        self.init_database()
+
+    def _connect(self):
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def init_database(self):
+        conn = self._connect()
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS accounts (
+                account_key TEXT PRIMARY KEY,
+                label TEXT,
+                account_number TEXT,
+                futures_account_id TEXT,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    def register(self, account_key: str, label: str = None,
+                 account_number: str = None, futures_account_id: str = None):
+        """Record an account, or fill in an identifier discovered later.
+
+        Called after a live refresh, which is where these identifiers come from.
+        Passing None for an identifier leaves whatever is already stored.
+        """
+        existing = self.get(account_key) or {}
+        conn = self._connect()
+        conn.execute('''
+            INSERT INTO accounts (account_key, label, account_number, futures_account_id)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_key) DO UPDATE SET
+                label = excluded.label,
+                account_number = excluded.account_number,
+                futures_account_id = excluded.futures_account_id,
+                updated_at = CURRENT_TIMESTAMP
+        ''', (
+            account_key,
+            label or existing.get('label') or account_key,
+            account_number or existing.get('account_number'),
+            futures_account_id or existing.get('futures_account_id'),
+        ))
+        conn.commit()
+        conn.close()
+        return self.get(account_key)
+
+    def get(self, account_key: str) -> Optional[Dict[str, str]]:
+        conn = self._connect()
+        row = conn.execute('SELECT * FROM accounts WHERE account_key = ?',
+                           (account_key,)).fetchone()
+        conn.close()
+        return dict(row) if row else None
+
+    def list(self) -> List[Dict[str, str]]:
+        """Every account that can be selected, with its per-asset identifiers."""
+        conn = self._connect()
+        rows = conn.execute('SELECT * FROM accounts ORDER BY label, account_key').fetchall()
+        conn.close()
+
+        return [{
+            'account_key': row['account_key'],
+            'label': row['label'] or row['account_key'],
+            'identifiers': {
+                'options': row['account_number'],
+                'stocks': row['account_number'],
+                'futures': row['futures_account_id'],
+            },
+        } for row in rows]
+
+    def identifier_for(self, account_key: str, asset_type: str) -> Optional[str]:
+        """What this asset calls the selected account.
+
+        None means this account has no identifier recorded for that asset yet,
+        so there is nothing of its to show -- which is different from showing
+        everything.
+        """
+        account = self.get(account_key)
+        if not account:
+            return None
+        if asset_type == 'futures':
+            return account.get('futures_account_id')
+        return account.get('account_number')

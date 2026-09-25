@@ -141,16 +141,20 @@ class StocksDatabase:
         Get all closed positions with FIFO P&L calculation.
         Returns list of closed position pairs.
 
-        `account` narrows the orders that are matched. Buys and sells are paired
-        within one account, never across two, since they are different accounts'
-        shares.
+        Buys are matched to sells within one account and one symbol. Shares in
+        one account cannot close a position in another, so the account is part
+        of the grouping key rather than a filter applied to it: there is no path
+        through this method that pairs across accounts.
+
+        `account` selects which account to report. Orders stored before the
+        account was recorded have none, and group together under that.
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # Get all orders by symbol
         query = '''
-            SELECT symbol, side, quantity, total_amount, average_price, trade_date, last_transaction_at
+            SELECT symbol, side, quantity, total_amount, average_price, trade_date,
+                   last_transaction_at, account_number
             FROM stock_orders
             WHERE state = 'filled'
         '''
@@ -160,16 +164,16 @@ class StocksDatabase:
             query += ' AND account_number = ?'
             params.append(account)
 
-        query += ' ORDER BY symbol, last_transaction_at'
+        query += ' ORDER BY account_number, symbol, last_transaction_at'
         cursor.execute(query, params)
 
-        # Group by symbol
+        # Group by account and symbol, so FIFO never reaches across either
         from collections import defaultdict
         symbol_orders = defaultdict(list)
 
         for row in cursor.fetchall():
-            symbol, side, qty, total, avg_price, date, timestamp = row
-            symbol_orders[symbol].append({
+            symbol, side, qty, total, avg_price, date, timestamp, account_number = row
+            symbol_orders[(account_number, symbol)].append({
                 'side': side,
                 'quantity': float(qty or 0),
                 'total_amount': float(total or 0),
@@ -183,8 +187,8 @@ class StocksDatabase:
         # Calculate closed positions using FIFO
         closed_positions = []
 
-        for symbol, orders in symbol_orders.items():
-            buy_queue = []  # FIFO queue of buys
+        for (account_number, symbol), orders in symbol_orders.items():
+            buy_queue = []  # FIFO queue of buys, for this account and symbol
 
             for order in orders:
                 if order['side'] == 'buy':
@@ -213,6 +217,7 @@ class StocksDatabase:
                         # Create closed position record
                         closed_positions.append({
                             'symbol': symbol,
+                            'account_number': account_number,
                             'quantity': matched_qty,
                             'buy_price': buy['price'],
                             'sell_price': sell_price,

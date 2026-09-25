@@ -57,103 +57,132 @@ def test_the_index_says_which_endpoints_each_asset_supports(unified):
 
 
 # ---------- parity with the standalone dashboards ----------
+#
+# The unified app answers for one selected account. A standalone dashboard shows
+# whatever it fetched, which was the primary account, unlabelled. So parity holds
+# for an asset whose rows record their account -- futures -- and for the others it
+# holds once they have been refreshed with an account selected. Until then their
+# rows belong to no account, and this app says so rather than claiming them.
 
-@pytest.mark.parametrize('asset_type', ASSETS)
-def test_daily_pnl_matches_the_standalone_dashboard(unified, asset_type):
-    """The figure behind every calendar day, compared response to response."""
-    mine = unified.get(f'/api/{asset_type}/daily-pnl')
-    theirs = standalone(asset_type).get('/api/daily-pnl')
+
+def _futures_account(unified, registered):
+    accounts = {a['account_key']: a for a in unified.get('/api/accounts').get_json()['accounts']}
+    return accounts['ACCT1']['identifiers']['futures']
+
+
+def test_futures_daily_pnl_matches_its_standalone_dashboard(unified, registered):
+    if not _futures_account(unified, registered):
+        pytest.skip('no futures account recorded locally')
+
+    mine = unified.get('/api/futures/daily-pnl?account=ACCT1')
+    theirs = standalone('futures').get('/api/daily-pnl')
 
     assert mine.status_code == theirs.status_code == 200
     assert mine.get_json()['daily_pnl'] == theirs.get_json()['daily_pnl']
 
 
-@pytest.mark.parametrize('asset_type', ASSETS)
-def test_daily_pnl_honours_a_date_range_the_same_way(unified, asset_type):
+def test_futures_daily_pnl_honours_a_date_range_the_same_way(unified, registered):
+    if not _futures_account(unified, registered):
+        pytest.skip('no futures account recorded locally')
+
     query = 'start_date=2026-01-01&end_date=2026-03-31'
-    mine = unified.get(f'/api/{asset_type}/daily-pnl?{query}').get_json()
-    theirs = standalone(asset_type).get(f'/api/daily-pnl?{query}').get_json()
+    mine = unified.get(f'/api/futures/daily-pnl?account=ACCT1&{query}').get_json()
+    theirs = standalone('futures').get(f'/api/daily-pnl?{query}').get_json()
 
     assert mine['daily_pnl'] == theirs['daily_pnl']
 
 
-@pytest.mark.parametrize('asset_type', ASSETS)
-def test_a_days_detail_matches_the_standalone_dashboard(unified, asset_type):
-    """Whichever day has the most activity, so the comparison is not empty."""
-    days = unified.get(f'/api/{asset_type}/daily-pnl').get_json()['daily_pnl']
+def test_a_futures_days_detail_matches_its_standalone_dashboard(unified, registered):
+    if not _futures_account(unified, registered):
+        pytest.skip('no futures account recorded locally')
+
+    days = unified.get('/api/futures/daily-pnl?account=ACCT1').get_json()['daily_pnl']
     if not days:
-        pytest.skip(f'no {asset_type} data stored locally')
+        pytest.skip('no futures data stored locally')
 
     date = max(days, key=lambda d: days[d].get('count', 0))
 
-    mine = unified.get(f'/api/{asset_type}/positions/date/{date}').get_json()
-    theirs = standalone(asset_type).get(f'/api/positions/date/{date}').get_json()
+    mine = unified.get(f'/api/futures/positions/date/{date}?account=ACCT1').get_json()
+    theirs = standalone('futures').get(f'/api/positions/date/{date}').get_json()
 
-    # options answers with positions, stocks and futures with orders
-    key = 'positions' if 'positions' in theirs else 'orders'
-    assert mine[key] == theirs[key]
+    assert mine['orders'] == theirs['orders']
     assert mine['date'] == theirs['date'] == date
 
 
-@pytest.mark.parametrize('asset_type', ['stocks', 'futures'])
-def test_a_daily_summary_matches_the_standalone_dashboard(unified, asset_type):
-    days = unified.get(f'/api/{asset_type}/daily-pnl').get_json()['daily_pnl']
-    if not days:
-        pytest.skip(f'no {asset_type} data stored locally')
+def test_futures_stored_data_matches_its_standalone_dashboard(unified, registered):
+    if not _futures_account(unified, registered):
+        pytest.skip('no futures account recorded locally')
 
+    mine = unified.get('/api/futures/data?account=ACCT1').get_json()
+    theirs = standalone('futures').get('/api/futures').get_json()
+
+    for key in ('open_positions', 'closed_positions', 'all_orders'):
+        assert mine.get(key) == theirs.get(key), f'futures {key} differs'
+
+
+def test_a_futures_daily_summary_matches_its_standalone_dashboard(unified, registered):
+    if not _futures_account(unified, registered):
+        pytest.skip('no futures account recorded locally')
+
+    days = unified.get('/api/futures/daily-pnl?account=ACCT1').get_json()['daily_pnl']
     date = max(days, key=lambda d: days[d].get('count', 0))
 
-    mine = unified.get(f'/api/{asset_type}/daily-summary/{date}').get_json()
-    theirs = standalone(asset_type).get(f'/api/daily-summary/{date}').get_json()
+    mine = unified.get(f'/api/futures/daily-summary/{date}?account=ACCT1').get_json()
+    theirs = standalone('futures').get(f'/api/daily-summary/{date}').get_json()
 
     assert mine['summary'] == theirs['summary']
 
 
-def test_trading_dates_match_the_stocks_dashboard(unified):
-    mine = unified.get('/api/stocks/all-trading-dates').get_json()
+def test_trading_dates_match_the_stocks_dashboard(unified, registered):
+    """Dates are not account-scoped in storage yet, so these still agree."""
+    mine = unified.get('/api/stocks/all-trading-dates?account=ACCT1').get_json()
     theirs = standalone('stocks').get('/api/all-trading-dates').get_json()
 
     assert mine['dates'] == theirs['dates']
 
 
-@pytest.mark.parametrize('asset_type', ['options', 'futures'])
-def test_stored_data_matches_the_standalone_dashboard(unified, asset_type):
-    """Positions and orders, for the assets whose data route reads only SQLite.
+@pytest.mark.parametrize('asset_type', ['options', 'stocks'])
+def test_assets_whose_rows_predate_the_account_show_none_of_them(unified, registered, asset_type):
+    """The honest answer while no row records an account.
 
-    Stocks is left out on purpose: its standalone data route fetches open
-    positions live, which these tests must not do.
+    These rows came from the primary account, but nothing recorded that, so no
+    account can claim them. Refreshing with an account selected is what fills
+    this in; nothing here guesses.
     """
-    path = {'options': '/api/options', 'futures': '/api/futures'}[asset_type]
+    days = unified.get(f'/api/{asset_type}/daily-pnl?account=ACCT1').get_json()['daily_pnl']
+    assert days == {}
 
-    mine = unified.get(f'/api/{asset_type}/data').get_json()
-    theirs = standalone(asset_type).get(path).get_json()
-
-    for key in ('open_positions', 'closed_positions', 'expired_positions', 'all_orders'):
-        assert mine.get(key) == theirs.get(key), f'{asset_type} {key} differs'
+    # And the standalone dashboard still shows them, unchanged
+    theirs = standalone(asset_type).get('/api/daily-pnl').get_json()['daily_pnl']
+    assert len(theirs) > 0
 
 
 # ---------- the route surface ----------
 
-def test_an_unknown_asset_is_refused_rather_than_guessed(unified):
-    for path in ('/api/crypto/data', '/api/crypto/daily-pnl',
-                 '/api/crypto/positions/date/2026-03-02'):
+def test_an_unknown_asset_is_refused_rather_than_guessed(unified, registered):
+    for path in ('/api/crypto/data?account=ACCT1', '/api/crypto/daily-pnl?account=ACCT1',
+                 '/api/crypto/positions/date/2026-03-02?account=ACCT1'):
         response = unified.get(path)
         assert response.status_code == 404, path
         assert 'crypto' in response.get_json()['error']
 
 
-def test_an_endpoint_an_asset_does_not_serve_says_so(unified):
+def test_an_endpoint_an_asset_does_not_serve_says_so(unified, registered):
     """Rather than erroring inside a handler that has nothing to call."""
-    assert unified.get('/api/options/daily-summary/2026-03-02').status_code == 404
-    assert unified.get('/api/futures/all-trading-dates').status_code == 404
+    assert unified.get('/api/options/daily-summary/2026-03-02?account=ACCT1').status_code == 404
+    assert unified.get('/api/futures/all-trading-dates?account=ACCT1').status_code == 404
 
 
-@pytest.mark.parametrize('asset_type', ASSETS)
-def test_every_asset_serves_the_same_route_surface(unified, asset_type):
-    """One set of routes covers all three; that is the point of the app."""
-    for path in (f'/api/{asset_type}/data',
-                 f'/api/{asset_type}/daily-pnl',
-                 f'/api/{asset_type}/positions/date/2026-03-02'):
+@pytest.mark.parametrize('asset_type', ['options', 'stocks'])
+def test_every_asset_serves_the_same_route_surface(unified, registered, asset_type):
+    """One set of routes covers all three; that is the point of the app.
+
+    Futures is checked separately because its account identifier depends on what
+    is stored locally.
+    """
+    for path in (f'/api/{asset_type}/data?account=ACCT1',
+                 f'/api/{asset_type}/daily-pnl?account=ACCT1',
+                 f'/api/{asset_type}/positions/date/2026-03-02?account=ACCT1'):
         assert unified.get(path).status_code == 200, path
 
 
@@ -170,6 +199,7 @@ def test_the_update_route_exists_for_every_asset_without_being_called():
 
 
 def test_the_journal_is_served_here_too(unified):
+    # Journals are not account-scoped reads; the route needs no selection
     assert unified.get('/api/journals').status_code == 200
 
 
@@ -182,84 +212,127 @@ def test_the_standalone_dashboards_are_untouched():
 
 
 # ---------- the account dimension ----------
+#
+# An account is a selection, not a filter. One account's figures are the only
+# figures that mean anything, so there is no request for every account and no
+# total across them.
 
-def test_the_app_lists_the_accounts_in_stored_data(unified):
-    """The switcher is built from stored rows, so the page makes no live call."""
+
+@pytest.fixture
+def registered(tmp_path):
+    """A registry holding one account with identifiers for every asset."""
+    import unified.unified_web as web
+    from shared.accounts import AccountRegistry, accounts_in
+
+    original = web._registry
+    registry = AccountRegistry(str(tmp_path / 'accounts.db'))
+
+    futures_ids = accounts_in('futures.db', 'futures_orders', 'account_id')
+    registry.register('ACCT1', label='Standard (...CCT1)', account_number='ACCT1',
+                      futures_account_id=futures_ids[0] if futures_ids else None)
+    registry.register('OPTONLY', label='Options only', account_number='OPTONLY')
+
+    web._registry = registry
+    yield registry
+    web._registry = original
+
+
+def test_the_app_lists_the_accounts_that_can_be_selected(unified, registered):
     payload = unified.get('/api/accounts').get_json()
 
     assert payload['success']
-    assert isinstance(payload['accounts'], list)
-    assert sorted(payload['by_asset']) == ASSETS
+    keys = [a['account_key'] for a in payload['accounts']]
+    assert sorted(keys) == ['ACCT1', 'OPTONLY']
 
-    # Whatever each asset reports must appear in the combined list
-    for accounts in payload['by_asset'].values():
-        for account in accounts:
-            assert account in payload['accounts']
+    for account in payload['accounts']:
+        assert account['label'], 'the switcher needs something to show'
+        # One account, named differently per asset
+        assert sorted(account['identifiers']) == ASSETS
+
+
+def test_one_account_carries_a_different_identifier_per_asset(unified, registered):
+    """Options and stocks use the account number, futures its own UUID."""
+    accounts = {a['account_key']: a for a in unified.get('/api/accounts').get_json()['accounts']}
+    identifiers = accounts['ACCT1']['identifiers']
+
+    assert identifiers['options'] == identifiers['stocks'] == 'ACCT1'
+    if identifiers['futures'] is not None:
+        assert identifiers['futures'] != 'ACCT1', 'futures is named separately'
 
 
 @pytest.mark.parametrize('asset_type', ASSETS)
-def test_no_account_selected_returns_every_account(unified, asset_type):
-    """Which is what these endpoints returned before accounts were tracked."""
-    without = unified.get(f'/api/{asset_type}/daily-pnl').get_json()['daily_pnl']
-    explicit_all = unified.get(f'/api/{asset_type}/daily-pnl?account=').get_json()['daily_pnl']
-
-    assert without == explicit_all
-
-
-@pytest.mark.parametrize('asset_type', ASSETS)
-def test_an_account_with_no_rows_returns_nothing(unified, asset_type):
-    """An empty answer, not a silent fallback to everything."""
-    filtered = unified.get(
-        f'/api/{asset_type}/daily-pnl?account=no-such-account'
-    ).get_json()['daily_pnl']
-
-    assert filtered == {}
+def test_a_read_without_an_account_is_a_bad_request(unified, registered, asset_type):
+    """Not a total across accounts, and not everything: a request for nothing."""
+    for path in (f'/api/{asset_type}/data',
+                 f'/api/{asset_type}/daily-pnl',
+                 f'/api/{asset_type}/positions/date/2026-03-02'):
+        response = unified.get(path)
+        assert response.status_code == 400, path
+        assert 'account' in response.get_json()['error'].lower()
 
 
-def test_filtering_by_the_recorded_account_matches_the_unfiltered_total(unified):
-    """Futures records its account, and every stored order is from that one."""
-    accounts = unified.get('/api/accounts').get_json()['by_asset']['futures']
-    if not accounts:
+def test_the_bad_request_says_which_accounts_there_are(unified, registered):
+    """So the page can recover rather than only reporting a failure."""
+    payload = unified.get('/api/options/daily-pnl').get_json()
+    assert [a['account_key'] for a in payload['accounts']] == ['OPTONLY', 'ACCT1'] or \
+           sorted(a['account_key'] for a in payload['accounts']) == ['ACCT1', 'OPTONLY']
+
+
+def test_an_account_with_no_identifier_for_an_asset_has_nothing_to_show(unified, registered):
+    """Different from showing everything, and different from showing zero."""
+    response = unified.get('/api/futures/daily-pnl?account=OPTONLY')
+
+    assert response.status_code == 404
+    assert 'futures' in response.get_json()['error']
+
+
+def test_an_unregistered_account_is_refused(unified, registered):
+    response = unified.get('/api/options/daily-pnl?account=NOPE')
+    assert response.status_code == 404
+
+
+def test_reads_are_scoped_to_the_selected_account(unified, registered):
+    """Futures records its account, so this compares against the real rows."""
+    accounts = {a['account_key']: a for a in unified.get('/api/accounts').get_json()['accounts']}
+    futures_id = accounts['ACCT1']['identifiers']['futures']
+    if not futures_id:
         pytest.skip('no futures account recorded locally')
 
-    everything = unified.get('/api/futures/daily-pnl').get_json()['daily_pnl']
-    filtered = unified.get(
-        f'/api/futures/daily-pnl?account={accounts[0]}'
-    ).get_json()['daily_pnl']
+    from futures.database import FuturesDatabase
 
-    assert filtered == everything
+    mine = unified.get('/api/futures/daily-pnl?account=ACCT1').get_json()['daily_pnl']
+    direct = FuturesDatabase('futures.db').get_daily_pnl(account=futures_id)
 
-
-def test_a_days_detail_can_be_narrowed_to_an_account(unified):
-    accounts = unified.get('/api/accounts').get_json()['by_asset']['futures']
-    if not accounts:
-        pytest.skip('no futures account recorded locally')
-
-    days = unified.get('/api/futures/daily-pnl').get_json()['daily_pnl']
-    date = max(days, key=lambda d: days[d].get('count', 0))
-
-    everything = unified.get(f'/api/futures/positions/date/{date}').get_json()['orders']
-    filtered = unified.get(
-        f'/api/futures/positions/date/{date}?account={accounts[0]}'
-    ).get_json()['orders']
-    other = unified.get(
-        f'/api/futures/positions/date/{date}?account=no-such-account'
-    ).get_json()['orders']
-
-    assert filtered == everything
-    assert other == []
+    assert mine == direct
 
 
-def test_the_account_to_refresh_is_sent_in_the_body_not_the_url():
-    """Refreshing hits the broker, so it stays a POST with an explicit account."""
+def test_rows_with_no_account_are_not_claimed_by_the_selected_one(unified, registered):
+    """Options rows predate the column, so this account has none of them."""
+    payload = unified.get('/api/options/data?account=ACCT1').get_json()
+
+    for key in ('open_positions', 'closed_positions', 'expired_positions', 'all_orders'):
+        assert payload.get(key) == [], f'{key} claimed rows with no account'
+
+
+def test_a_summary_computed_over_every_row_is_not_shown_as_an_accounts(unified, registered):
+    """A fetcher's summary block spans all rows, so it is not this account's."""
+    payload = unified.get('/api/futures/data?account=ACCT1').get_json()
+    assert payload.get('summary') is None
+
+
+def test_refreshing_requires_the_account_being_refreshed():
+    """The account is what makes the broker answer for it rather than the primary."""
     from unified.unified_web import app
 
     rules = {str(r): r for r in app.url_map.iter_rules()}
     assert 'GET' not in rules['/api/<asset_type>/update'].methods
 
+    client = app.test_client()
+    assert client.post('/api/options/update', json={}).status_code == 400
 
-def test_the_standalone_dashboards_still_return_everything():
-    """They have no account switcher, so they must be unaffected by the column."""
+
+def test_the_standalone_dashboards_need_no_account():
+    """They show one account's data because that is all they ever fetched."""
     for asset_type in ASSETS:
         client = standalone(asset_type)
         assert client.get('/api/daily-pnl').status_code == 200

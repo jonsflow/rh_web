@@ -15,7 +15,8 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from shared.journals_api import journals_blueprint
 from shared.web_assets import shared_static_blueprint
-from unified.assets import all_accounts, asset_types, get_handlers
+from shared.accounts import AccountRegistry
+from unified.assets import asset_types, get_handlers
 
 app = Flask(__name__, static_url_path='/static', static_folder='static',
             template_folder='templates')
@@ -31,6 +32,33 @@ app.register_blueprint(shared_static_blueprint())
 
 # Trade journal, shared by every dashboard
 app.register_blueprint(journals_blueprint())
+
+
+_registry = AccountRegistry()
+
+
+def _selected_account(asset_type):
+    """The account this request is for, as this asset names it.
+
+    An account is a selection, not a filter: there is no request for every
+    account, because one account's figures are the only figures that mean
+    anything. A request without one is a bad request, and an account with no
+    identifier for this asset has nothing to show.
+    """
+    account_key = request.args.get('account')
+    if not account_key:
+        return None, (jsonify({
+            'error': 'An account must be selected',
+            'accounts': _registry.list(),
+        }), 400)
+
+    identifier = _registry.identifier_for(account_key, asset_type)
+    if identifier is None:
+        return None, (jsonify({
+            'error': f'Account {account_key} has no {asset_type} account recorded',
+        }), 404)
+
+    return identifier, None
 
 
 def _handlers_or_404(asset_type):
@@ -56,15 +84,14 @@ def index():
 
 @app.route('/api/accounts')
 def list_accounts():
-    """Accounts the stored data knows about, for the account switcher.
+    """The accounts that can be selected, with each asset's name for them.
 
-    Read from stored rows, not from the broker, so opening the page makes no
-    live call. Assets fetched before the account was recorded contribute
-    nothing, and selecting no account means every account, as before.
+    Read from what has been recorded, not from the broker, so opening the page
+    makes no live call. One account is one account; the identifiers differ per
+    asset because the broker names it differently, and that mapping is recorded
+    rather than inferred.
     """
-    per_asset = all_accounts()
-    every = sorted({account for accounts in per_asset.values() for account in accounts})
-    return jsonify({'success': True, 'accounts': every, 'by_asset': per_asset})
+    return jsonify({'success': True, 'accounts': _registry.list()})
 
 
 @app.route('/api/assets')
@@ -92,8 +119,12 @@ def get_data(asset_type):
     if missing:
         return missing
 
+    account, missing_account = _selected_account(asset_type)
+    if missing_account:
+        return missing_account
+
     try:
-        result = handlers.data()
+        result = handlers.data(account)
         if result and result.get('error'):
             return jsonify({'error': result.get('message', 'Failed to fetch data')}), 500
         return jsonify(result)
@@ -109,10 +140,16 @@ def update_data(asset_type):
         return missing
 
     payload = request.get_json(silent=True) or {}
+    account_key = payload.get('account')
+    if not account_key:
+        return jsonify({'error': 'An account must be selected'}), 400
+
+    account = _registry.identifier_for(account_key, asset_type)
+
     try:
-        # Fetching for one account is the point of naming it: without one the
-        # broker answers for the primary account
-        result = handlers.update(bool(payload.get('force_refresh')), payload.get('account'))
+        # The account being refreshed is named, so the broker answers for it
+        # rather than for whichever account it considers primary
+        result = handlers.update(bool(payload.get('force_refresh')), account)
         if result and result.get('error'):
             return jsonify({'error': result.get('message', 'Failed to update')}), 500
         return jsonify(result if result is not None else {'success': True})
@@ -127,11 +164,15 @@ def get_daily_pnl(asset_type):
     if missing:
         return missing
 
+    account, missing_account = _selected_account(asset_type)
+    if missing_account:
+        return missing_account
+
     try:
         daily = handlers.daily_pnl(
             request.args.get('start_date'),
             request.args.get('end_date'),
-            request.args.get('account'),
+            account,
         )
         return jsonify({'success': True, 'daily_pnl': daily})
     except Exception as error:
@@ -149,8 +190,12 @@ def get_positions_by_date(asset_type, date):
     if missing:
         return missing
 
+    account, missing_account = _selected_account(asset_type)
+    if missing_account:
+        return missing_account
+
     try:
-        result = handlers.positions_by_date(date, request.args.get('account'))
+        result = handlers.positions_by_date(date, account)
         return jsonify({'success': True, **result})
     except Exception as error:
         return _failed(f'fetch {asset_type} positions for {date}', error)
@@ -166,9 +211,12 @@ def get_daily_summary(asset_type, date):
     if not handlers.supports('daily_summary'):
         return jsonify({'error': f'{asset_type} has no daily summary'}), 404
 
+    account, missing_account = _selected_account(asset_type)
+    if missing_account:
+        return missing_account
+
     try:
-        return jsonify({'success': True,
-                        'summary': handlers.daily_summary(date, request.args.get('account'))})
+        return jsonify({'success': True, 'summary': handlers.daily_summary(date, account)})
     except Exception as error:
         return _failed(f'fetch {asset_type} summary for {date}', error)
 
@@ -183,8 +231,12 @@ def get_all_trading_dates(asset_type):
     if not handlers.supports('all_trading_dates'):
         return jsonify({'error': f'{asset_type} has no trading-date index'}), 404
 
+    account, missing_account = _selected_account(asset_type)
+    if missing_account:
+        return missing_account
+
     try:
-        return jsonify({'success': True, 'dates': handlers.all_trading_dates()})
+        return jsonify({'success': True, 'dates': handlers.all_trading_dates(account)})
     except Exception as error:
         return _failed(f'fetch {asset_type} trading dates', error)
 

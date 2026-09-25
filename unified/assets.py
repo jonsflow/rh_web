@@ -14,6 +14,32 @@ already produce.
 from typing import Any, Callable, Dict, List, Optional
 
 
+def _only_account(payload: Dict[str, Any], field: str, account: Optional[str]):
+    """Keep the rows belonging to the selected account.
+
+    Rows are filtered by the field that asset uses for the account. A row with no
+    account recorded is not the selected account's, so it is left out: claiming
+    it would attribute someone else's trade to the account on screen.
+
+    Aggregates the fetcher computed over every row (a summary block) are dropped
+    rather than shown, since they are not this account's totals.
+    """
+    if not account:
+        return payload
+
+    filtered = {}
+    for key, value in payload.items():
+        if isinstance(value, list):
+            filtered[key] = [row for row in value
+                             if isinstance(row, dict) and row.get(field) == account]
+        elif key == 'summary':
+            # Computed across every row, so it is not this account's summary
+            filtered[key] = None
+        else:
+            filtered[key] = value
+    return filtered
+
+
 class AssetHandlers:
     """The operations one asset type supports.
 
@@ -26,12 +52,12 @@ class AssetHandlers:
         self,
         asset_type: str,
         label: str,
-        data: Callable[[], Dict[str, Any]],
+        data: Callable[..., Dict[str, Any]],
         update: Callable[..., Dict[str, Any]],
         daily_pnl: Callable[..., Any],
         positions_by_date: Callable[..., Dict[str, Any]],
         daily_summary: Optional[Callable[..., Any]] = None,
-        all_trading_dates: Optional[Callable[[], Any]] = None,
+        all_trading_dates: Optional[Callable[..., Any]] = None,
         accounts: Optional[Callable[[], List[str]]] = None,
     ):
         self.asset_type = asset_type
@@ -54,11 +80,13 @@ def _options_handlers():
 
     fetcher = SmartDataFetcher()
 
-    def data():
+    def data(account=None):
         result = fetcher.get_processed_data()
         if 'error' in result:
             return result
-        # The shape the options dashboard has always returned
+        # The shape the options dashboard has always returned, narrowed to the
+        # selected account
+        result = _only_account(result, 'account_number', account)
         return {
             'open_positions': result['open_positions'],
             'closed_positions': result['closed_positions'],
@@ -92,11 +120,12 @@ def _stocks_handlers():
 
     fetcher = StocksDataFetcher()
 
-    def data():
+    def data(account=None):
         # Open positions are a live call, so the unified view reads what is
         # stored; the standalone dashboard fetches them separately and so can
         # this one, through its own endpoint
-        return fetcher.get_processed_data(include_open_positions=False)
+        result = fetcher.get_processed_data(include_open_positions=False)
+        return _only_account(result, 'account_number', account)
 
     def positions_by_date(date, account=None):
         return {'date': date, 'orders': fetcher.db.get_orders_by_trade_date(date, account)}
@@ -109,7 +138,7 @@ def _stocks_handlers():
         daily_pnl=lambda start, end, account=None: fetcher.db.get_daily_pnl(start, end, account),
         positions_by_date=positions_by_date,
         daily_summary=lambda date, account=None: fetcher.db.get_daily_summary(date),
-        all_trading_dates=lambda: fetcher.db.get_all_trading_dates(),
+        all_trading_dates=lambda account=None: fetcher.db.get_all_trading_dates(),
         accounts=lambda: accounts_in(fetcher.db.db_path, 'stock_orders'),
     )
 
@@ -120,10 +149,11 @@ def _futures_handlers():
 
     fetcher = FuturesDataFetcher()
 
-    def data():
+    def data(account=None):
         result = fetcher.get_processed_data()
         if 'error' in result:
             return result
+        result = _only_account(result, 'account_id', account)
         return {
             'open_positions': result['open_positions'],
             'closed_positions': result['closed_positions'],
@@ -176,17 +206,3 @@ def get_handlers(asset_type: str) -> Optional[AssetHandlers]:
 def reset():
     """Drop the cached handlers. For tests."""
     _CACHE.clear()
-
-
-def all_accounts() -> Dict[str, List[str]]:
-    """Which accounts appear in each asset's stored rows.
-
-    Read from what is stored rather than from the broker, so the switcher can
-    be built without a live call. An asset whose rows predate the account
-    column contributes nothing, and the view falls back to every account.
-    """
-    found = {}
-    for asset_type in asset_types():
-        handlers = get_handlers(asset_type)
-        found[asset_type] = handlers.accounts() if handlers.supports('accounts') else []
-    return found
