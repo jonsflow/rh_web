@@ -1,0 +1,425 @@
+<title>Unified Sync Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+  :root {
+    --paper:#F1F3F0; --surface:#FBFCFA; --ink:#1A211E; --ink-soft:#4E5A55;
+    --ink-faint:#7D8983; --rule:#D8DDD8; --rule-soft:#E6EAE5;
+    --credit:#1B6B4A; --credit-bg:#E3EFE8; --debit:#B23A2E; --debit-bg:#F6E5E2;
+    --f-display:"IBM Plex Serif",Georgia,serif;
+    --f-body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#111614; --surface:#19201D; --ink:#E5EAE6; --ink-soft:#A2AEA8;
+      --ink-faint:#74807A; --rule:#2C3733; --rule-soft:#232C29;
+      --credit:#55BC8D; --credit-bg:#163025; --debit:#E0806E; --debit-bg:#33201C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#111614; --surface:#19201D; --ink:#E5EAE6; --ink-soft:#A2AEA8;
+    --ink-faint:#74807A; --rule:#2C3733; --rule-soft:#232C29;
+    --credit:#55BC8D; --credit-bg:#163025; --debit:#E0806E; --debit-bg:#33201C;
+  }
+  * { box-sizing:border-box; }
+  body {
+    background:var(--paper); color:var(--ink); font-family:var(--f-body);
+    font-size:16px; line-height:1.6; margin:0;
+    padding-inline:20px; padding-block:0 64px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:760px; margin:0 auto; }
+  .masthead { padding-block:48px 28px; border-bottom:2px solid var(--ink); }
+  .eyebrow {
+    font-family:var(--f-mono); font-size:11px; font-weight:500;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint);
+    margin:0 0 16px; display:flex; flex-wrap:wrap; gap:8px 14px;
+  }
+  h1 {
+    font-family:var(--f-display); font-weight:600;
+    font-size:clamp(28px,6.4vw,42px); line-height:1.12;
+    letter-spacing:-.015em; text-wrap:balance; margin:0 0 14px;
+  }
+  .standfirst { font-size:clamp(16px,2.6vw,18px); line-height:1.5; color:var(--ink-soft); margin:0; max-width:62ch; }
+  .standfirst strong { color:var(--ink); font-weight:600; }
+  section { padding-block:38px; border-bottom:1px solid var(--rule); }
+  section:last-of-type { border-bottom:none; }
+  h2 {
+    font-family:var(--f-mono); font-size:11px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 20px;
+  }
+  h3 { font-family:var(--f-display); font-weight:600; font-size:18px; line-height:1.3; margin:0 0 6px; text-wrap:balance; }
+  p { margin:0 0 12px; max-width:66ch; }
+  p:last-child { margin-bottom:0; }
+  .inline-code, code {
+    font-family:var(--f-mono); font-size:.88em; background:var(--rule-soft);
+    padding:1px 5px; border-radius:2px; color:var(--ink); word-break:break-word;
+  }
+  pre {
+    font-family:var(--f-mono); font-size:13px; line-height:1.65;
+    background:var(--surface); border:1px solid var(--rule);
+    padding:16px 18px; margin:0 0 14px; overflow-x:auto; color:var(--ink-soft);
+  }
+  pre b { color:var(--ink); font-weight:600; }
+  pre i { color:var(--ink-faint); font-style:normal; }
+  .callout { background:var(--credit-bg); border-left:3px solid var(--credit); padding:14px 16px; margin-top:20px; }
+  .callout p { font-size:15px; margin:0; color:var(--ink); }
+  .callout b {
+    font-family:var(--f-mono); font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--credit); display:block; margin-bottom:4px;
+  }
+  .warn { background:var(--debit-bg); border-left-color:var(--debit); }
+  .warn b { color:var(--debit); }
+  .rules { display:flex; flex-direction:column; gap:16px; }
+  .rule-item { display:grid; grid-template-columns:26px 1fr; gap:12px; align-items:start; }
+  .rule-num { font-family:var(--f-mono); font-size:12px; font-weight:600; color:var(--credit); padding-top:3px; }
+  .rule-item p { font-size:15px; margin:0; color:var(--ink-soft); }
+  .rule-item strong { color:var(--ink); font-weight:600; }
+  .steps { display:flex; flex-direction:column; gap:2px; }
+  .step {
+    display:grid; grid-template-columns:44px 1fr; gap:0 16px;
+    background:var(--surface); border:1px solid var(--rule); padding:16px 16px 16px 0;
+  }
+  @media (max-width:520px){ .step { grid-template-columns:34px 1fr; gap:0 10px; padding-right:14px; } }
+  .step-num {
+    font-family:var(--f-mono); font-size:17px; font-weight:600;
+    color:var(--ink-faint); text-align:center; padding-top:1px;
+    border-left:3px solid var(--rule); align-self:stretch;
+  }
+  .step h3 { font-size:17px; margin:0 0 5px; }
+  .step p { font-size:14.5px; color:var(--ink-soft); margin:0 0 8px; }
+  .step p:last-of-type { margin-bottom:0; }
+  .touches { font-family:var(--f-mono); font-size:12px; color:var(--ink-faint); margin:8px 0 0; }
+  .verify {
+    font-family:var(--f-mono); font-size:12px; line-height:1.55; color:var(--ink-soft);
+    margin-top:10px; padding-top:9px; border-top:1px dashed var(--rule);
+  }
+  .verify b {
+    color:var(--ink-faint); font-weight:600; letter-spacing:.1em;
+    text-transform:uppercase; font-size:10px; display:block; margin-bottom:3px;
+  }
+  .ledger { width:100%; border-collapse:collapse; font-size:14px; }
+  .ledger th {
+    font-family:var(--f-mono); font-size:10px; font-weight:600; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--ink-faint); text-align:left;
+    padding:0 12px 8px 0; border-bottom:1px solid var(--rule);
+  }
+  .ledger td { padding:9px 12px 9px 0; border-bottom:1px solid var(--rule-soft); color:var(--ink-soft); vertical-align:top; }
+  .ledger td.mono { font-family:var(--f-mono); font-size:12.5px; color:var(--ink); }
+  .ledger tr:last-child td { border-bottom:none; }
+  .scroll { overflow-x:auto; }
+  footer { padding-top:28px; font-family:var(--f-mono); font-size:12px; color:var(--ink-faint); line-height:1.7; }
+  @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important;} }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">
+      <span>Design &amp; code plan &middot; 2026-09-26</span>
+      <span>branch / refactor&#8203;/unified-portfolio</span>
+    </p>
+    <h1>Unified Sync Design</h1>
+    <p class="standfirst">
+      The unified app already serves three asset types from one set of routes. It still
+      reads three databases. <strong>This is the layer that builds its own</strong> &mdash; the
+      fetch and sync path, following what the three apps already do, so nothing new is
+      invented and nothing is copied.
+    </p>
+  </header>
+
+  <section>
+    <h2>The rules this follows</h2>
+    <div class="rules">
+      <div class="rule-item">
+        <span class="rule-num">01</span>
+        <p><strong>Store what the API returns.</strong> The payload is kept verbatim on the
+        row, as all three apps already do in their <code>raw_data</code> column. A parse
+        mistake is then never destructive: re-derive rather than re-fetch.</p>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">02</span>
+        <p><strong>The sync builds the database.</strong> Nothing reads the three original
+        databases to fill the new one. There is no import and no migration &mdash; the
+        unified database is populated the same way the other three were, by syncing.</p>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">03</span>
+        <p><strong>Follow what the apps do.</strong> Parse on ingest with the raw kept
+        beside it; positions rebuilt after insert where that is what the asset does today;
+        the update endpoint as the trigger. No sync on boot, because none of the three
+        does that.</p>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">04</span>
+        <p><strong>Build nothing extra.</strong> No separate process, no raw-only table,
+        no abstraction that a second asset would not have needed anyway.</p>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">05</span>
+        <p><strong>The three apps stay the control.</strong> They keep running on their own
+        databases and showing known-good figures, so a unified answer can be diffed
+        against them. One copy of each parse feeds both, so they cannot drift apart.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The sync, as it works today</h2>
+    <p>All three fetchers are the same four beats, written three times.</p>
+<pre><b>update_data</b>(account)
+  login_robinhood()            <i>3 copies, identical</i>
+  fetch_&lt;asset&gt;_orders()        <i>broker call &mdash; genuinely per-asset</i>
+    db.insert_orders(payloads) <i>parse and INSERT welded in one loop</i>
+    db.rebuild_positions()     <i>options and futures; stocks pairs at read</i>
+  get_processed_data()         <i>read back</i></pre>
+    <p>
+      The only part that differs per asset is the broker call and the parse that follows
+      it. Everything around them is the same work three times.
+    </p>
+  </section>
+
+  <section>
+    <h2>The shape</h2>
+    <p>One pipeline. The parts that differ are the parts with three implementations.</p>
+<pre><b>sync</b>(asset, account)
+  login                                  <i>shared</i>
+  since    = watermark(asset, account)    <i>shared &mdash; max(created_at) in unified.db</i>
+  payloads = broker_call[asset](since)    <i>per asset</i>
+  rows     = model[asset].from_payload()  <i>per asset &mdash; the parse</i>
+  write(orders, rows)                     <i>shared</i>
+  pair[asset]()                           <i>per asset</i></pre>
+    <p>
+      The sync never branches on asset type. It looks up the model and calls the same two
+      methods on it, so a fourth asset is a fourth model rather than a fourth code path.
+    </p>
+  </section>
+
+  <section>
+    <h2>A model per asset</h2>
+    <p>
+      <code>models/</code> already holds <code>OptionOrder</code>, a dataclass mirroring the
+      options schema, used by <code>services/data_repository.py</code>. The two new models
+      follow it rather than introducing a pattern.
+    </p>
+    <div class="scroll">
+      <table class="ledger">
+        <thead>
+          <tr><th>Model</th><th>Mirrors</th><th>The parse it owns</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">OptionOrder<br><i>exists</i></td>
+            <td>option payload</td>
+            <td>Multi-leg strike and type joined into one string; option ids from the leg URLs</td>
+          </tr>
+          <tr>
+            <td class="mono">StockOrder<br><i>new</i></td>
+            <td>stock payload</td>
+            <td>Flat fields, already normalized by its data fetcher</td>
+          </tr>
+          <tr>
+            <td class="mono">FuturesOrder<br><i>new</i></td>
+            <td>futures payload</td>
+            <td>Double-nested <code>realizedPnl.amount</code>; contract and side off the first leg; trade date converted to Eastern from the execution time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px">Each exposes the same two methods:</p>
+<pre><b>from_payload</b>(payload, account)  <i>classmethod &mdash; broker payload to model</i>
+<b>to_row</b>()                        <i>model to unified column dict</i></pre>
+
+    <div class="callout">
+      <b>The parse moves, it is not rewritten</b>
+      <p>
+        The parsing code is lifted out of each <code>insert_orders</code> verbatim into
+        <code>from_payload</code>, and <code>insert_orders</code> then calls it. One copy
+        feeds both schemas. That is what keeps the three dashboards usable as the control,
+        and it gives those parsers their first direct test coverage &mdash; today they are
+        exercised only by a signature check at <code>tests/test_accounts.py:162</code>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pairing: each asset keeps what it does</h2>
+    <p>
+      Orders become positions three different ways. That is not duplication to collapse
+      &mdash; the algorithms genuinely differ &mdash; so each asset keeps its own behavior
+      and writes to the one positions table.
+    </p>
+    <div class="scroll">
+      <table class="ledger">
+        <thead>
+          <tr><th>Asset</th><th>How it pairs</th><th>Where</th><th>Stored?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">options</td>
+            <td>Open and close orders matched on the option key</td>
+            <td class="mono">portfolio/database.py:161</td>
+            <td>rebuilt after insert</td>
+          </tr>
+          <tr>
+            <td class="mono">futures</td>
+            <td>Opening orders matched with closing ones per contract</td>
+            <td class="mono">futures/database.py:218</td>
+            <td>rebuilt after insert</td>
+          </tr>
+          <tr>
+            <td class="mono">stocks</td>
+            <td>FIFO, buys to sells, account in the grouping key</td>
+            <td class="mono">stocks/database.py:139</td>
+            <td>derived on read</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px">
+      So the <code>positions</code> table holds options and futures rows, and stocks derives
+      from unified orders when asked. No asset gains a step it does not have and none loses one.
+    </p>
+  </section>
+
+  <section>
+    <h2>The code plan</h2>
+    <div class="steps">
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h3>The models</h3>
+          <p>
+            <code>StockOrder</code> and <code>FuturesOrder</code> added beside
+            <code>OptionOrder</code>; each gets <code>from_payload</code> and
+            <code>to_row</code>, with the parse lifted out of the three
+            <code>insert_orders</code> methods. Those methods then call their model, so the
+            original apps keep writing exactly what they wrote before.
+          </p>
+          <p class="touches">models/{option,stock,futures}_order.py &middot; {portfolio,stocks,futures}/database.py</p>
+          <p class="verify"><b>Verify</b>
+            A payload dict in, the expected row out, per asset &mdash; no database and no
+            broker. The existing suite still passes, which is what says the three apps are
+            writing what they wrote before.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h3>The write and the watermark</h3>
+          <p>
+            <code>insert_orders(asset_type, rows)</code> on the unified database, ignoring
+            an order it already has, and <code>watermark(asset_type, account)</code> for the
+            incremental start date the fetchers already compute from
+            <code>get_last_order_date()</code>.
+          </p>
+          <p class="touches">unified/database.py</p>
+          <p class="verify"><b>Verify</b>
+            Rows constructed in the test land under canonical names; inserting the same
+            order twice leaves one row; the watermark is per asset and per account, so
+            selecting a second account does not re-fetch from the first one's date.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h3>Pairing into the unified positions table</h3>
+          <p>
+            Options and futures rebuild positions from unified orders into unified columns.
+            Stocks stays derive-on-read. The algorithms are the existing ones, reading and
+            writing different column names.
+          </p>
+          <p class="touches">unified/ &middot; the three pairing implementations</p>
+          <p class="verify"><b>Verify</b>
+            A small set of orders built in the test, run through the old pairing and the new
+            one, asserting the same positions come out. Offline, no broker, no stored data.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h3>The sync</h3>
+          <p>
+            Login, broker call, model, write, pair &mdash; per asset, behind one entry point,
+            called from <code>/api/&lt;asset_type&gt;/update</code> as it is now.
+          </p>
+          <p class="touches">unified/ &middot; unified/unified_web.py:142</p>
+          <p class="verify"><b>Verify</b>
+            The whole sync runs against a fake broker returning payloads, and rows land with
+            asset type and account set. Nothing authenticates. The real populate is a live
+            sync, run by you.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">5</span>
+        <div>
+          <h3>The app reads unified, the translation goes</h3>
+          <p>
+            <code>unified/assets.py</code> reads the unified database instead of the three
+            files. One schema means nothing left to translate, so
+            <code>shared/field_config.py</code>, the <code>asset_fields</code> block in
+            <code>config.json</code> and the roughly thirty field names in
+            <code>asset-config.js</code> all go.
+          </p>
+          <p class="touches">unified/assets.py &middot; shared/field_config.py &middot; config.json &middot; shared/static/js/asset-config.js</p>
+          <p class="verify"><b>Verify</b>
+            Every unified figure diffed against the same figure from the standalone
+            dashboard. Futures 2025-02-24 reads &minus;19.14, the after-fees figure, and the
+            four tests failing today pass.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout warn">
+      <b>Step 5 has a precondition</b>
+      <p>
+        Steps 1 through 4 are all verifiable offline. Step 5 compares unified figures against
+        the three dashboards, which needs the unified database to hold your data &mdash; so it
+        waits on a live sync, which is yours to run. Until then those comparisons have nothing
+        to compare and the four failing tests stay failing, which is expected rather than a
+        regression.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deliberately not built</h2>
+    <p>
+      No import from the three databases. No separate normalizing process. No raw-only table
+      distinct from the parsed row, because the apps already keep both on one row. No sync on
+      boot. No broker abstraction &mdash; the design doc's three rules already keep
+      <code>robin_stocks</code> confined to the fetchers, and the models are where a second
+      broker's names would be absorbed.
+    </p>
+  </section>
+
+  <section>
+    <h2>Where things stand</h2>
+    <div class="scroll">
+      <table class="ledger">
+        <thead><tr><th>What</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Commits through f9a5e93</td><td class="mono">unchanged &mdash; three dashboards and the unified app all working</td></tr>
+          <tr><td>The three databases</td><td class="mono">the control, never opened for writing</td></tr>
+          <tr><td>unified/database.py</td><td class="mono">schema written, 12 tests, wired to nothing yet</td></tr>
+          <tr><td>unified.db</td><td class="mono">does not exist &mdash; step 4 creates it, your sync fills it</td></tr>
+          <tr><td>Field translation</td><td class="mono">uncommitted; deleted by step 5</td></tr>
+          <tr><td>Tests</td><td class="mono">186 pass, 4 fail &mdash; the futures figure step 5 fixes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    rh_web &middot; branch refactor/unified-portfolio<br>
+    Risk manager unaffected.
+  </footer>
+
+</div>
